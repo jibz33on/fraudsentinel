@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Transaction #4821 - FraudSentinel</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;700&amp;family=Inter:wght@400;500;600&amp;family=IBM+Plex+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            background-color: #0e0e13;
+            color: #f9f5fd;
+            font-family: 'Inter', sans-serif;
+        }
+        .mono-data {
+            font-family: 'IBM+Plex+Mono', monospace;
+        }
+        .headline {
+            font-family: 'Space Grotesk', sans-serif;
+        }
+        /* Custom scrollbar for high-density look */
+        ::-webkit-scrollbar {
+            width: 4px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0e0e13;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #48474d;
+            border-radius: 2px;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "secondary-fixed": "#bfd1ff",
+                      "on-error-container": "#ffa8a3",
+                      "surface-container-high": "#1f1f26",
+                      "on-tertiary-container": "#553c00",
+                      "on-primary-fixed": "#004621",
+                      "error-dim": "#d7383b",
+                      "inverse-primary": "#006e37",
+                      "secondary": "#6a9cff",
+                      "primary-fixed": "#00fd87",
+                      "on-tertiary": "#604400",
+                      "inverse-surface": "#fcf8ff",
+                      "tertiary-container": "#ffbb00",
+                      "surface-container-low": "#131319",
+                      "secondary-fixed-dim": "#aac3ff",
+                      "tertiary": "#ffcd6b",
+                      "surface-container": "#19191f",
+                      "outline-variant": "#48474d",
+                      "surface-container-lowest": "#000000",
+                      "background": "#0e0e13",
+                      "error-container": "#9f0519",
+                      "tertiary-dim": "#edae00",
+                      "surface-bright": "#2c2b33",
+                      "secondary-container": "#005ac5",
+                      "inverse-on-surface": "#55545b",
+                      "on-primary": "#006532",
+                      "surface-variant": "#25252d",
+                      "on-secondary-container": "#f7f7ff",
+                      "surface-container-highest": "#25252d",
+                      "tertiary-fixed": "#ffbb00",
+                      "on-error": "#490006",
+                      "surface": "#0e0e13",
+                      "on-secondary-fixed-variant": "#004caa",
+                      "secondary-dim": "#6a9cff",
+                      "on-surface-variant": "#acaab1",
+                      "on-tertiary-fixed-variant": "#604400",
+                      "outline": "#76747b",
+                      "tertiary-fixed-dim": "#edae00",
+                      "error": "#ff716c",
+                      "on-secondary-fixed": "#003173",
+                      "on-surface": "#f9f5fd",
+                      "on-background": "#f9f5fd",
+                      "on-secondary": "#001e4b",
+                      "on-primary-fixed-variant": "#006632",
+                      "on-tertiary-fixed": "#3b2900",
+                      "primary-fixed-dim": "#00ed7e",
+                      "surface-tint": "#a4ffb9",
+                      "surface-dim": "#0e0e13",
+                      "primary-dim": "#00ed7e",
+                      "primary-container": "#00fd87",
+                      "primary": "#a4ffb9",
+                      "on-primary-container": "#005b2c"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.125rem",
+                      "lg": "0.25rem",
+                      "xl": "0.5rem",
+                      "full": "0.75rem"
+              },
+              "fontFamily": {
+                      "headline": [ "Space Grotesk" ],
+                      "body": [ "Inter" ],
+                      "label": [ "Inter" ]
+              }
+            },
+          }
+        }
+      </script>
+</head>
+<body class="overflow-x-hidden">
+<!-- SideNavBar (Shared Component) -->
+<aside class="w-[240px] h-screen fixed left-0 top-0 border-r border-[#48474d]/15 bg-[#0e0e13] flex flex-col justify-between py-6 font-['Space_Grotesk'] text-sm tracking-tight z-[60]">
+<div class="px-6">
+<div class="text-xl font-bold tracking-tighter text-[#a4ffb9] mb-8">FraudSentinel</div>
+<nav class="space-y-1">
+<a class="flex items-center gap-3 px-3 py-2 text-[#acaab1] hover:text-white transition-colors duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span> Dashboard
+                </a>
+<a class="flex items-center gap-3 px-3 py-2 text-[#a4ffb9] bg-[#25252d] border-l-2 border-[#a4ffb9] font-bold" href="#">
+<span class="material-symbols-outlined text-[#a4ffb9]" data-icon="receipt_long">receipt_long</span> Transactions
+                </a>
+<a class="flex items-center gap-3 px-3 py-2 text-[#acaab1] hover:text-white transition-colors duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="group">group</span> Users
+                </a>
+<a class="flex items-center gap-3 px-3 py-2 text-[#acaab1] hover:text-white transition-colors duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="analytics">analytics</span> Analytics
+                </a>
+<a class="flex items-center gap-3 px-3 py-2 text-[#acaab1] hover:text-white transition-colors duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span> Settings
+                </a>
+</nav>
+</div>
+<div class="px-6">
+<div class="mb-4 text-[10px] font-['IBM_Plex_Mono'] uppercase text-[#acaab1] tracking-[0.2em]">AI Agent Status</div>
+<div class="space-y-4">
+<div class="flex items-center justify-between text-xs">
+<div class="flex items-center gap-2 text-white">
+<span class="material-symbols-outlined text-sm" data-icon="radar">radar</span> Detector
+                    </div>
+<div class="w-2 h-2 rounded-full bg-[#a4ffb9] animate-pulse"></div>
+</div>
+<div class="flex items-center justify-between text-xs">
+<div class="flex items-center gap-2 text-white">
+<span class="material-symbols-outlined text-sm" data-icon="search">search</span> Investigator
+                    </div>
+<div class="w-2 h-2 rounded-full bg-[#a4ffb9] animate-pulse"></div>
+</div>
+<div class="flex items-center justify-between text-xs">
+<div class="flex items-center gap-2 text-white">
+<span class="material-symbols-outlined text-sm" data-icon="gavel">gavel</span> Decision
+                    </div>
+<div class="w-2 h-2 rounded-full bg-[#a4ffb9]"></div>
+</div>
+</div>
+</div>
+</aside>
+<!-- TopAppBar (Shared Component) -->
+<header class="fixed top-0 right-0 left-[240px] h-16 z-50 bg-[#0e0e13]/80 backdrop-blur-xl border-b border-[#48474d]/15 flex justify-between items-center px-8 font-['IBM_Plex_Mono'] text-xs font-medium uppercase">
+<div class="flex items-center gap-4">
+<button class="hover:text-white transition-opacity">
+<span class="material-symbols-outlined align-middle" data-icon="arrow_back">arrow_back</span>
+</button>
+<span class="text-white text-lg font-bold normal-case font-['Space_Grotesk']">Transaction #4821</span>
+<div class="bg-error-container text-on-error-container px-2 py-0.5 rounded-lg text-[10px] tracking-wider font-bold">REJECTED</div>
+</div>
+<div class="flex items-center gap-6">
+<div class="relative">
+<span class="material-symbols-outlined text-[#acaab1] absolute left-3 top-1/2 -translate-y-1/2 text-sm" data-icon="search">search</span>
+<input class="bg-surface-container-low border-none focus:ring-1 focus:ring-primary text-[#acaab1] pl-10 pr-4 py-1.5 rounded text-[10px] w-64" placeholder="QUERY LEDGER..." type="text"/>
+</div>
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-[#acaab1] hover:text-white cursor-pointer" data-icon="schedule">schedule</span>
+<span class="material-symbols-outlined text-[#acaab1] hover:text-white cursor-pointer" data-icon="notifications">notifications</span>
+<div class="flex items-center gap-2 text-primary border border-primary/20 px-3 py-1 rounded-sm bg-primary/5">
+<span class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span>
+                    SYSTEM LIVE
+                </div>
+</div>
+</div>
+</header>
+<!-- Main Content -->
+<main class="ml-[240px] pt-24 pb-32 px-8 min-h-screen">
+<div class="grid grid-cols-12 gap-6 items-start">
+<!-- Left Column: Primary Data -->
+<div class="col-span-12 lg:col-span-7 space-y-6">
+<!-- Transaction Info Card -->
+<section class="bg-surface-container-low p-6 rounded-xl relative overflow-hidden group">
+<div class="absolute top-0 left-0 w-1 h-full bg-error"></div>
+<div class="flex justify-between items-start mb-6">
+<div>
+<h2 class="text-[11px] font-['IBM_Plex_Mono'] uppercase tracking-widest text-on-surface-variant mb-1">Transaction Identity</h2>
+<div class="text-4xl font-headline font-bold text-white mono-data">$4,500.00</div>
+</div>
+<div class="text-right">
+<div class="text-[10px] font-['IBM_Plex_Mono'] text-on-surface-variant uppercase mb-1">Authorization Code</div>
+<div class="text-secondary mono-data text-sm">TXN-4821-XPR-03</div>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-y-6 gap-x-8">
+<div class="space-y-1">
+<label class="text-[10px] text-on-surface-variant uppercase tracking-wider block">User</label>
+<div class="flex items-center gap-2">
+<div class="w-6 h-6 rounded bg-surface-container-highest flex items-center justify-center text-[10px] text-primary">JK</div>
+<span class="font-medium text-on-surface">Jimmy K</span>
+<span class="text-[11px] mono-data text-outline">(USR-2891)</span>
+</div>
+</div>
+<div class="space-y-1">
+<label class="text-[10px] text-on-surface-variant uppercase tracking-wider block">Merchant</label>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-sm text-tertiary" data-icon="currency_exchange">currency_exchange</span>
+<span class="font-medium text-on-surface">Crypto Exchange</span>
+</div>
+</div>
+<div class="space-y-1">
+<label class="text-[10px] text-on-surface-variant uppercase tracking-wider block">Location</label>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-sm text-error" data-icon="location_on">location_on</span>
+<span class="font-medium text-on-surface">Lagos, Nigeria 🇳🇬</span>
+</div>
+</div>
+<div class="space-y-1">
+<label class="text-[10px] text-on-surface-variant uppercase tracking-wider block">Timestamp</label>
+<div class="text-sm mono-data text-on-surface">APR 05, 2026 03:14:22 IST</div>
+</div>
+<div class="space-y-1">
+<label class="text-[10px] text-on-surface-variant uppercase tracking-wider block">Device / IP</label>
+<div class="flex items-center gap-2 text-sm mono-data text-on-surface">
+<span class="material-symbols-outlined text-xs" data-icon="smartphone">smartphone</span> iPhone 14
+                                <span class="text-outline">/</span>
+<span class="text-secondary">197.210.64.122</span>
+</div>
+</div>
+<div class="space-y-1">
+<label class="text-[10px] text-on-surface-variant uppercase tracking-wider block">Method</label>
+<div class="flex items-center gap-2 text-sm mono-data text-on-surface">
+<span class="material-symbols-outlined text-xs" data-icon="credit_card">credit_card</span> Visa ****4821
+                            </div>
+</div>
+</div>
+</section>
+<!-- User Behavior Card -->
+<section class="bg-surface-container-low p-6 rounded-xl">
+<h2 class="text-[11px] font-['IBM_Plex_Mono'] uppercase tracking-widest text-on-surface-variant mb-6 flex items-center gap-2">
+<span class="material-symbols-outlined text-sm" data-icon="psychology">psychology</span> Behavioral Analytics
+                    </h2>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+<div class="space-y-4">
+<div class="grid grid-cols-2 gap-4">
+<div class="bg-surface-container-highest p-3 rounded">
+<div class="text-[9px] text-outline uppercase mb-1">Avg Spend</div>
+<div class="text-lg mono-data text-on-surface">$85.00</div>
+</div>
+<div class="bg-surface-container-highest p-3 rounded">
+<div class="text-[9px] text-outline uppercase mb-1">Active Hours</div>
+<div class="text-sm mono-data text-on-surface">09:00 - 22:00</div>
+</div>
+<div class="bg-surface-container-highest p-3 rounded">
+<div class="text-[9px] text-outline uppercase mb-1">Usual Location</div>
+<div class="text-sm font-medium text-on-surface">Kochi, India 🇮🇳</div>
+</div>
+<div class="bg-surface-container-highest p-3 rounded">
+<div class="text-[9px] text-outline uppercase mb-1">Account Age</div>
+<div class="text-sm font-medium text-on-surface">3 Years</div>
+</div>
+</div>
+<div class="bg-surface-container-highest/50 p-3 border-l-2 border-primary/20">
+<div class="text-[9px] text-outline uppercase mb-2">Confidence Signal</div>
+<div class="flex items-center justify-between text-xs text-on-surface">
+<span>Total Transactions</span>
+<span class="mono-data">284</span>
+</div>
+</div>
+</div>
+<div class="relative h-full min-h-[160px] rounded-lg overflow-hidden bg-surface-container-highest">
+<img class="w-full h-full object-cover opacity-60 grayscale" data-alt="stylized dark theme digital map with red glowing line connecting Lagos Nigeria and Kochi India highlighting geographical distance" data-location="Nigeria" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD046yMHrU2IDd_5kfHbhfooSElbTZy_SLozAeyZw_FPBAenAbqD_NKiINr1TDDx6a9yJzAEi7CZqXs1WUrF3oJYA7jZrdG3cdZpPJAo9EpwgKJafwFxQI3nmZnyptTb8UxU4L1SdQP81zgjfMJHD5mp47GA5kDzkk0ojBzHuwef00ozPQHFtwkNGvSVboUz5x9jHvDbggCgKzrUzQs4zgBX_mfhVc0V1lCrf8fJMTSZYJV6WbYkvAxIXMdT4WlnICYyWEcikQBi8g6"/>
+<div class="absolute inset-0 bg-gradient-to-t from-[#0e0e13] to-transparent"></div>
+<div class="absolute bottom-3 left-3 flex flex-col gap-1">
+<div class="flex items-center gap-2 text-[10px] mono-data text-[#a4ffb9]">
+<span class="w-1.5 h-1.5 rounded-full bg-[#a4ffb9]"></span> HOME: KOCHI
+                                </div>
+<div class="flex items-center gap-2 text-[10px] mono-data text-error">
+<span class="w-1.5 h-1.5 rounded-full bg-error animate-ping"></span> EVENT: LAGOS
+                                </div>
+</div>
+</div>
+</div>
+</section>
+</div>
+<!-- Right Column: AI Chain -->
+<div class="col-span-12 lg:col-span-5 space-y-4">
+<h3 class="text-[11px] font-['IBM_Plex_Mono'] uppercase tracking-[0.2em] text-on-surface-variant px-1 mb-2">Reasoning Chain</h3>
+<!-- DETECTOR Card -->
+<div class="bg-surface-container-highest border-l-2 border-secondary rounded-r-lg overflow-hidden">
+<div class="p-4 flex items-center justify-between cursor-pointer hover:bg-surface-bright/20 transition-colors">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-secondary" data-icon="radar">radar</span>
+<div>
+<div class="text-xs font-bold text-white">DETECTOR</div>
+<div class="text-[10px] text-outline uppercase mono-data">Anomaly Identification</div>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<div class="text-right">
+<div class="text-xs text-outline uppercase tracking-tighter">Risk Score</div>
+<div class="text-2xl font-bold text-error mono-data">94/100</div>
+</div>
+<span class="material-symbols-outlined text-[#acaab1]" data-icon="expand_more">expand_more</span>
+</div>
+</div>
+<div class="px-4 pb-4 border-t border-outline-variant/10 pt-4">
+<ul class="space-y-2">
+<li class="flex items-center justify-between text-xs">
+<span class="text-on-surface-variant flex items-center gap-2">
+<span class="w-1 h-1 rounded-full bg-error"></span> Velocity Alert
+                                </span>
+<span class="text-error mono-data">52x Avg Spend</span>
+</li>
+<li class="flex items-center justify-between text-xs">
+<span class="text-on-surface-variant flex items-center gap-2">
+<span class="w-1 h-1 rounded-full bg-error"></span> Location Shift
+                                </span>
+<span class="text-on-surface-variant mono-data">First in Nigeria</span>
+</li>
+<li class="flex items-center justify-between text-xs">
+<span class="text-on-surface-variant flex items-center gap-2">
+<span class="w-1 h-1 rounded-full bg-tertiary"></span> Time Window
+                                </span>
+<span class="text-tertiary mono-data">03:14 AM (Off-hours)</span>
+</li>
+<li class="flex items-center justify-between text-xs">
+<span class="text-on-surface-variant flex items-center gap-2">
+<span class="w-1 h-1 rounded-full bg-error"></span> Merchant Class
+                                </span>
+<span class="text-error mono-data">Crypto Exchange</span>
+</li>
+</ul>
+</div>
+</div>
+<!-- INVESTIGATOR Card -->
+<div class="bg-surface-container-highest border-l-2 border-tertiary rounded-r-lg overflow-hidden">
+<div class="p-4 flex items-center justify-between cursor-pointer hover:bg-surface-bright/20 transition-colors">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-tertiary" data-icon="search">search</span>
+<div>
+<div class="text-xs font-bold text-white">INVESTIGATOR</div>
+<div class="text-[10px] text-outline uppercase mono-data">Behavioral Cross-Check</div>
+</div>
+</div>
+<span class="material-symbols-outlined text-[#acaab1]" data-icon="expand_less">expand_less</span>
+</div>
+<div class="px-4 pb-4 border-t border-outline-variant/10 pt-4 space-y-4">
+<p class="text-xs text-on-surface-variant leading-relaxed">
+                            Pattern deviation confirmed. Account history shows 100% Kerala-based transactions for 36 months. Current activity shows a complete hardware and region break.
+                        </p>
+<div class="space-y-3">
+<div>
+<div class="flex justify-between text-[10px] text-outline uppercase mb-1">
+<span>Geographic Deviation</span>
+<span class="text-error mono-data">99.2%</span>
+</div>
+<div class="h-1 bg-surface-container-low w-full rounded-full overflow-hidden">
+<div class="h-full bg-error w-[99.2%]"></div>
+</div>
+</div>
+<div>
+<div class="flex justify-between text-[10px] text-outline uppercase mb-1">
+<span>Payload Consistency</span>
+<span class="text-tertiary mono-data">14.0%</span>
+</div>
+<div class="h-1 bg-surface-container-low w-full rounded-full overflow-hidden">
+<div class="h-full bg-tertiary w-[14%]"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- DECISION Card -->
+<div class="bg-surface-container-highest border-l-2 border-error rounded-r-lg overflow-hidden">
+<div class="p-4 flex items-center justify-between cursor-pointer hover:bg-surface-bright/20 transition-colors">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-error" data-icon="gavel">gavel</span>
+<div>
+<div class="text-xs font-bold text-white">DECISION</div>
+<div class="text-[10px] text-outline uppercase mono-data">Final Verdict Agent</div>
+</div>
+</div>
+<div class="text-right">
+<div class="text-xs text-outline uppercase tracking-tighter">Confidence</div>
+<div class="text-lg font-bold text-primary mono-data">94%</div>
+</div>
+</div>
+<div class="px-4 pb-4 border-t border-outline-variant/10 pt-4 text-center">
+<div class="bg-error/10 border border-error/30 py-3 rounded mb-4">
+<div class="text-[10px] text-error uppercase font-bold tracking-widest mb-1">Agent Verdict</div>
+<div class="text-3xl font-headline font-bold text-error uppercase">REJECT</div>
+</div>
+<p class="text-[10px] text-on-surface-variant text-left leading-tight italic">
+                            "High probability of account takeover. Immediate freeze recommended. Behavioral footprint does not align with historical profile."
+                        </p>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Bottom Action Row -->
+<footer class="fixed bottom-0 right-0 left-[240px] h-20 bg-[#131319]/90 backdrop-blur-md border-t border-[#48474d]/15 px-8 flex items-center justify-between z-50">
+<div class="flex items-center gap-4">
+<button class="px-6 py-2 border border-primary/40 text-primary text-xs font-bold uppercase tracking-widest flex items-center gap-2 hover:bg-primary/5 transition-colors">
+<span class="material-symbols-outlined text-sm" data-icon="check">check</span> Approve
+            </button>
+<button class="px-6 py-2 bg-error text-on-error-container text-xs font-bold uppercase tracking-widest flex items-center gap-2 hover:brightness-110 transition-all shadow-[0_0_20px_rgba(255,113,108,0.2)]">
+<span class="material-symbols-outlined text-sm" data-icon="close">close</span> Reject
+            </button>
+<button class="px-6 py-2 border border-tertiary/40 text-tertiary text-xs font-bold uppercase tracking-widest flex items-center gap-2 hover:bg-tertiary/5 transition-colors">
+<span class="material-symbols-outlined text-sm" data-icon="publish">publish</span> Escalate
+            </button>
+</div>
+<div class="flex items-center gap-6">
+<button class="text-xs text-on-surface-variant hover:text-white flex items-center gap-2 transition-colors uppercase font-medium">
+<span class="material-symbols-outlined text-sm" data-icon="chat">chat</span> Add Note
+            </button>
+<div class="h-8 w-[1px] bg-outline-variant/20"></div>
+<div class="flex items-center gap-3">
+<div class="text-right">
+<div class="text-[9px] text-outline uppercase tracking-tighter">Assigned Agent</div>
+<div class="text-[10px] text-white mono-data">SENTINEL-9_V3</div>
+</div>
+<div class="w-8 h-8 rounded-full bg-surface-container-highest border border-outline-variant/30 flex items-center justify-center">
+<span class="material-symbols-outlined text-primary text-lg" data-icon="smart_toy" style="font-variation-settings: 'FILL' 1;">smart_toy</span>
+</div>
+</div>
+</div>
+</footer>
+</body></html>

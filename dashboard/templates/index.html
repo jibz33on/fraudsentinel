@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>FraudSentinel - High-Density Intelligence</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;family=Inter:wght@300;400;500;600;700&amp;family=IBM+Plex+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            background-color: #0e0e13;
+            color: #f9f5fd;
+            font-family: 'Inter', sans-serif;
+        }
+        .monospace { font-family: 'IBM+Plex+Mono', monospace; }
+        .headline { font-family: 'Space Grotesk', sans-serif; }
+        
+        /* Custom scrollbar for high-density look */
+        ::-webkit-scrollbar { width: 4px; height: 4px; }
+        ::-webkit-scrollbar-track { background: #0e0e13; }
+        ::-webkit-scrollbar-thumb { background: #48474d; border-radius: 2px; }
+        
+        @keyframes pulse-soft {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.7; transform: scale(0.95); }
+        }
+        .animate-pulse-soft { animation: pulse-soft 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                "secondary-fixed": "#bfd1ff",
+                "on-error-container": "#ffa8a3",
+                "surface-container-high": "#1f1f26",
+                "on-tertiary-container": "#553c00",
+                "on-primary-fixed": "#004621",
+                "error-dim": "#d7383b",
+                "inverse-primary": "#006e37",
+                "secondary": "#6a9cff",
+                "primary-fixed": "#00fd87",
+                "on-tertiary": "#604400",
+                "inverse-surface": "#fcf8ff",
+                "tertiary-container": "#ffbb00",
+                "surface-container-low": "#131319",
+                "secondary-fixed-dim": "#aac3ff",
+                "tertiary": "#ffcd6b",
+                "surface-container": "#19191f",
+                "outline-variant": "#48474d",
+                "surface-container-lowest": "#000000",
+                "background": "#0e0e13",
+                "error-container": "#9f0519",
+                "tertiary-dim": "#edae00",
+                "surface-bright": "#2c2b33",
+                "secondary-container": "#005ac5",
+                "inverse-on-surface": "#55545b",
+                "on-primary": "#006532",
+                "surface-variant": "#25252d",
+                "on-secondary-container": "#f7f7ff",
+                "surface-container-highest": "#25252d",
+                "tertiary-fixed": "#ffbb00",
+                "on-error": "#490006",
+                "surface": "#0e0e13",
+                "on-secondary-fixed-variant": "#004caa",
+                "secondary-dim": "#6a9cff",
+                "on-surface-variant": "#acaab1",
+                "on-tertiary-fixed-variant": "#604400",
+                "outline": "#76747b",
+                "tertiary-fixed-dim": "#edae00",
+                "error": "#ff716c",
+                "on-secondary-fixed": "#003173",
+                "on-surface": "#f9f5fd",
+                "on-background": "#f9f5fd",
+                "on-secondary": "#001e4b",
+                "on-primary-fixed-variant": "#006632",
+                "on-tertiary-fixed": "#3b2900",
+                "primary-fixed-dim": "#00ed7e",
+                "surface-tint": "#a4ffb9",
+                "surface-dim": "#0e0e13",
+                "primary-dim": "#00ed7e",
+                "primary-container": "#00fd87",
+                "primary": "#a4ffb9",
+                "on-primary-container": "#005b2c"
+              },
+              "borderRadius": {
+                "DEFAULT": "0.125rem",
+                "lg": "0.25rem",
+                "xl": "0.5rem",
+                "full": "0.75rem"
+              },
+              "fontFamily": {
+                "headline": ["Space Grotesk"],
+                "body": ["Inter"],
+                "label": ["Inter"],
+                "mono": ["IBM Plex Mono"]
+              }
+            },
+          },
+        }
+    </script>
+</head>
+<body class="bg-surface-dim selection:bg-primary-container selection:text-on-primary-container">
+<!-- Side Navigation Shell -->
+<aside class="w-[240px] h-screen fixed left-0 top-0 border-r border-outline-variant/15 bg-[#0e0e13] flex flex-col justify-between py-6 z-[60]">
+<div class="px-6">
+<div class="flex items-center gap-2 mb-10">
+<div class="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+<span class="material-symbols-outlined text-on-primary-container text-xl" data-icon="security" style="font-variation-settings: 'FILL' 1;">security</span>
+</div>
+<div>
+<h1 class="text-xl font-bold tracking-tighter text-primary headline">FraudSentinel</h1>
+<p class="text-[10px] text-on-surface-variant uppercase tracking-[0.2em] font-medium">High-Density Intelligence</p>
+</div>
+</div>
+<nav class="space-y-1">
+<a class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-primary bg-surface-variant border-l-2 border-primary font-bold transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard" style="font-variation-settings: 'FILL' 1;">dashboard</span>
+<span class="headline text-sm tracking-tight">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-bright hover:text-white transition-colors duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="receipt_long">receipt_long</span>
+<span class="headline text-sm tracking-tight">Transactions</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-bright hover:text-white transition-colors duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="group">group</span>
+<span class="headline text-sm tracking-tight">Users</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-bright hover:text-white transition-colors duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="analytics">analytics</span>
+<span class="headline text-sm tracking-tight">Analytics</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-bright hover:text-white transition-colors duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span class="headline text-sm tracking-tight">Settings</span>
+</a>
+</nav>
+</div>
+<div class="px-4 space-y-4">
+<div class="p-3 bg-surface-container-low rounded-xl border border-outline-variant/10">
+<p class="text-[10px] text-on-surface-variant font-mono uppercase tracking-widest mb-3">AI Agent Status</p>
+<div class="space-y-2">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse shadow-[0_0_8px_#a4ffb9]"></span>
+<span class="text-[10px] font-mono text-on-surface-variant uppercase">Detector</span>
+</div>
+<span class="text-[9px] font-mono text-primary">ONLINE</span>
+</div>
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse shadow-[0_0_8px_#a4ffb9]"></span>
+<span class="text-[10px] font-mono text-on-surface-variant uppercase">Investigator</span>
+</div>
+<span class="text-[9px] font-mono text-primary">ONLINE</span>
+</div>
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse shadow-[0_0_8px_#a4ffb9]"></span>
+<span class="text-[10px] font-mono text-on-surface-variant uppercase">Decision</span>
+</div>
+<span class="text-[9px] font-mono text-primary">ONLINE</span>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-3 px-4">
+<div class="w-8 h-8 rounded-full bg-surface-container-highest overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="close up professional headshot of male intelligence analyst in a dark suit with neutral background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDSfO0JOVkmb40d4HJ2qC9BRiId9gbdvXSUaXD_AvnimoqoVWilNRlmAhu2VFOEutxowCiSQoMpivEGT8-2MFxMzB0FaL-kaoJbyLJ7lclaUNbK_VnPjvlDdUtPDt7c4mbseZr54fw6YV1BxUfon3bB2EGH1kY3z664qq9sVXNMChxXsdGBd1uP66NHEpcdjrFUg-ZQFkMojQ7AlXtNcnD7nwUAZsS9_0CX1MbhQeOoukEdihJs4CpfpfaQL4QDk_3oONIrDS6npjBe"/>
+</div>
+<div class="flex-1 overflow-hidden">
+<p class="text-xs font-bold truncate">A. Volkov</p>
+<p class="text-[10px] text-on-surface-variant font-mono">L3-OPERATOR</p>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant text-sm" data-icon="logout">logout</span>
+</div>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="ml-[240px] pt-16 min-h-screen bg-surface-dim">
+<!-- Top App Bar Shell -->
+<header class="fixed top-0 right-0 left-[240px] h-16 bg-surface-dim/80 backdrop-blur-xl border-b border-outline-variant/15 flex justify-between items-center px-8 z-50">
+<div class="flex items-center gap-4">
+<h2 class="text-lg font-bold text-white headline tracking-tight">Live Dashboard</h2>
+<div class="h-4 w-px bg-outline-variant/30"></div>
+<div class="flex items-center gap-2">
+<span class="text-[10px] font-mono text-on-surface-variant uppercase tracking-wider">Sync:</span>
+<span class="text-[10px] font-mono text-primary">03:14:52 GMT</span>
+</div>
+</div>
+<div class="flex items-center gap-6">
+<div class="flex items-center gap-2 px-3 py-1 bg-primary/10 rounded-full border border-primary/20">
+<span class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse-soft shadow-[0_0_6px_#a4ffb9]"></span>
+<span class="text-[10px] font-mono font-bold text-primary tracking-widest uppercase">SYSTEM LIVE</span>
+</div>
+<div class="flex items-center gap-4 text-on-surface-variant">
+<button class="hover:text-white transition-opacity"><span class="material-symbols-outlined" data-icon="schedule">schedule</span></button>
+<div class="relative">
+<button class="hover:text-white transition-opacity"><span class="material-symbols-outlined" data-icon="notifications">notifications</span></button>
+<span class="absolute top-0 right-0 w-2 h-2 bg-error rounded-full border-2 border-surface-dim"></span>
+</div>
+</div>
+</div>
+</header>
+<div class="p-8 space-y-8">
+<!-- Stats Row: High Density Bento -->
+<div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+<!-- Card 1 -->
+<div class="bg-surface-container-low p-5 rounded-xl border border-outline-variant/5 hover:border-outline-variant/20 transition-all duration-300">
+<div class="flex justify-between items-start mb-4">
+<p class="text-[10px] font-mono text-on-surface-variant uppercase tracking-widest">Total Transactions</p>
+<span class="material-symbols-outlined text-on-surface-variant text-lg" data-icon="trending_up">trending_up</span>
+</div>
+<div class="flex items-end justify-between">
+<div>
+<h3 class="text-3xl font-mono font-bold text-white">1,243</h3>
+<p class="text-[10px] text-primary font-mono mt-1">+12.4% <span class="text-on-surface-variant opacity-50">vs last 24h</span></p>
+</div>
+<div class="h-8 w-20 bg-gradient-to-t from-primary/10 to-transparent rounded flex items-end px-1 gap-1">
+<div class="w-1.5 h-[40%] bg-primary/40 rounded-t-sm"></div>
+<div class="w-1.5 h-[60%] bg-primary/40 rounded-t-sm"></div>
+<div class="w-1.5 h-[50%] bg-primary/40 rounded-t-sm"></div>
+<div class="w-1.5 h-[80%] bg-primary/40 rounded-t-sm"></div>
+<div class="w-1.5 h-[95%] bg-primary rounded-t-sm"></div>
+</div>
+</div>
+</div>
+<!-- Card 2 -->
+<div class="bg-surface-container-low p-5 rounded-xl border border-outline-variant/5 hover:border-outline-variant/20 transition-all duration-300 relative overflow-hidden">
+<div class="absolute top-0 left-0 w-1 h-full bg-tertiary"></div>
+<div class="flex justify-between items-start mb-4">
+<p class="text-[10px] font-mono text-on-surface-variant uppercase tracking-widest">Flagged</p>
+<span class="material-symbols-outlined text-tertiary text-lg" data-icon="warning">warning</span>
+</div>
+<div class="flex items-end justify-between">
+<div>
+<h3 class="text-3xl font-mono font-bold text-tertiary">12</h3>
+<p class="text-[10px] text-tertiary font-mono mt-1 tracking-tight">Needs Review</p>
+</div>
+<span class="text-[10px] font-mono bg-tertiary/10 text-tertiary px-2 py-0.5 rounded border border-tertiary/20">PRIORITY</span>
+</div>
+</div>
+<!-- Card 3 -->
+<div class="bg-surface-container-low p-5 rounded-xl border border-outline-variant/5 hover:border-outline-variant/20 transition-all duration-300 relative overflow-hidden">
+<div class="absolute top-0 left-0 w-1 h-full bg-error"></div>
+<div class="flex justify-between items-start mb-4">
+<p class="text-[10px] font-mono text-on-surface-variant uppercase tracking-widest">Rejected</p>
+<span class="material-symbols-outlined text-error text-lg" data-icon="block">block</span>
+</div>
+<div class="flex items-end justify-between">
+<div>
+<h3 class="text-3xl font-mono font-bold text-error">4</h3>
+<p class="text-[10px] text-error font-mono mt-1 tracking-tight">Blocked Attacks</p>
+</div>
+<div class="w-12 h-12 flex items-center justify-center bg-error/5 rounded-full">
+<span class="material-symbols-outlined text-error opacity-50" data-icon="security_update_warning">security_update_warning</span>
+</div>
+</div>
+</div>
+<!-- Card 4 -->
+<div class="bg-surface-container-low p-5 rounded-xl border border-outline-variant/5 hover:border-outline-variant/20 transition-all duration-300">
+<div class="flex justify-between items-start mb-4">
+<p class="text-[10px] font-mono text-on-surface-variant uppercase tracking-widest">Approved</p>
+<span class="material-symbols-outlined text-primary text-lg" data-icon="check_circle" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+<div class="flex items-end justify-between">
+<div>
+<h3 class="text-3xl font-mono font-bold text-white">1,227</h3>
+<p class="text-[10px] text-primary font-mono mt-1 tracking-tight">Cleared Clean</p>
+</div>
+<span class="text-[10px] font-mono text-on-surface-variant bg-surface-container-highest px-2 py-0.5 rounded">98.7% RATIO</span>
+</div>
+</div>
+</div>
+<!-- Main Dashboard Layout: Asymmetric -->
+<div class="grid grid-cols-1 xl:grid-cols-12 gap-8">
+<!-- Center Feed (8 cols) -->
+<div class="xl:col-span-8 space-y-6">
+<div class="bg-surface-container-low rounded-xl border border-outline-variant/10 overflow-hidden">
+<div class="px-6 py-4 border-b border-outline-variant/10 flex items-center justify-between">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary" data-icon="radar">radar</span>
+<h3 class="headline font-bold text-white tracking-tight">🚨 Live Transaction Feed</h3>
+</div>
+<div class="flex items-center gap-4">
+<div class="flex items-center gap-2">
+<span class="w-1.5 h-1.5 rounded-full bg-primary/40"></span>
+<span class="text-[10px] font-mono text-on-surface-variant uppercase tracking-widest">Auto-refresh Active</span>
+</div>
+<button class="p-1 text-on-surface-variant hover:text-white"><span class="material-symbols-outlined text-lg" data-icon="filter_list">filter_list</span></button>
+</div>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-surface-container/50 border-b border-outline-variant/5">
+<th class="px-6 py-3 text-[10px] font-mono text-on-surface-variant uppercase tracking-wider">User Identity</th>
+<th class="px-6 py-3 text-[10px] font-mono text-on-surface-variant uppercase tracking-wider text-right">Amount</th>
+<th class="px-6 py-3 text-[10px] font-mono text-on-surface-variant uppercase tracking-wider">Geo/Time</th>
+<th class="px-6 py-3 text-[10px] font-mono text-on-surface-variant uppercase tracking-wider text-center">Risk Vector</th>
+<th class="px-6 py-3 text-[10px] font-mono text-on-surface-variant uppercase tracking-wider">Status</th>
+<th class="px-6 py-3"></th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant/5">
+<!-- Row 1 -->
+<tr class="hover:bg-surface-container-highest/50 transition-colors group">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded bg-surface-variant flex items-center justify-center text-[10px] font-bold headline">JK</div>
+<div>
+<p class="text-sm font-medium text-white">Jimmy K</p>
+<p class="text-[10px] font-mono text-on-surface-variant">ID: 4821-X9</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-4 text-right">
+<p class="text-sm font-mono font-bold text-white">$4,500.00</p>
+</td>
+<td class="px-6 py-4">
+<div class="flex flex-col">
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-xs text-on-surface-variant" data-icon="location_on">location_on</span>
+<span class="text-xs">Nigeria</span>
+</div>
+<span class="text-[10px] font-mono text-on-surface-variant">03:14 AM</span>
+</div>
+</td>
+<td class="px-6 py-4">
+<div class="flex flex-col items-center gap-1">
+<span class="text-xs font-mono font-bold text-error">94/100</span>
+<div class="w-20 h-1 bg-surface-container-highest rounded-full overflow-hidden">
+<div class="h-full bg-error" style="width: 94%"></div>
+</div>
+</div>
+</td>
+<td class="px-6 py-4">
+<span class="text-[10px] font-mono bg-error-container/20 text-error px-2 py-0.5 rounded border border-error/20 uppercase font-bold tracking-widest">REJECTED</span>
+</td>
+<td class="px-6 py-4 text-right">
+<button class="px-3 py-1 text-[10px] font-mono border border-outline-variant/30 text-on-surface-variant rounded hover:border-primary hover:text-primary transition-all">VIEW</button>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="hover:bg-surface-container-highest/50 transition-colors group">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded bg-surface-variant flex items-center justify-center text-[10px] font-bold headline">SM</div>
+<div>
+<p class="text-sm font-medium text-white">Sarah M</p>
+<p class="text-[10px] font-mono text-on-surface-variant">ID: 9901-B2</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-4 text-right">
+<p class="text-sm font-mono font-bold text-white">$890.00</p>
+</td>
+<td class="px-6 py-4">
+<div class="flex flex-col">
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-xs text-on-surface-variant" data-icon="location_on">location_on</span>
+<span class="text-xs">London</span>
+</div>
+<span class="text-[10px] font-mono text-on-surface-variant">11:42 PM</span>
+</div>
+</td>
+<td class="px-6 py-4">
+<div class="flex flex-col items-center gap-1">
+<span class="text-xs font-mono font-bold text-tertiary">67/100</span>
+<div class="w-20 h-1 bg-surface-container-highest rounded-full overflow-hidden">
+<div class="h-full bg-tertiary" style="width: 67%"></div>
+</div>
+</div>
+</td>
+<td class="px-6 py-4">
+<span class="text-[10px] font-mono bg-tertiary-container/10 text-tertiary px-2 py-0.5 rounded border border-tertiary/20 uppercase font-bold tracking-widest">REVIEW</span>
+</td>
+<td class="px-6 py-4 text-right">
+<button class="px-3 py-1 text-[10px] font-mono border border-outline-variant/30 text-on-surface-variant rounded hover:border-primary hover:text-primary transition-all">VIEW</button>
+</td>
+</tr>
+<!-- Row 3 -->
+<tr class="hover:bg-surface-container-highest/50 transition-colors group">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded bg-surface-variant flex items-center justify-center text-[10px] font-bold headline">MT</div>
+<div>
+<p class="text-sm font-medium text-white">Mark T</p>
+<p class="text-[10px] font-mono text-on-surface-variant">ID: 1044-L0</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-4 text-right">
+<p class="text-sm font-mono font-bold text-white">$45.00</p>
+</td>
+<td class="px-6 py-4">
+<div class="flex flex-col">
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-xs text-on-surface-variant" data-icon="location_on">location_on</span>
+<span class="text-xs">Kochi</span>
+</div>
+<span class="text-[10px] font-mono text-on-surface-variant">02:15 PM</span>
+</div>
+</td>
+<td class="px-6 py-4">
+<div class="flex flex-col items-center gap-1">
+<span class="text-xs font-mono font-bold text-primary">12/100</span>
+<div class="w-20 h-1 bg-surface-container-highest rounded-full overflow-hidden">
+<div class="h-full bg-primary" style="width: 12%"></div>
+</div>
+</div>
+</td>
+<td class="px-6 py-4">
+<span class="text-[10px] font-mono bg-primary-container/10 text-primary px-2 py-0.5 rounded border border-primary/20 uppercase font-bold tracking-widest">APPROVED</span>
+</td>
+<td class="px-6 py-4 text-right">
+<button class="px-3 py-1 text-[10px] font-mono border border-outline-variant/30 text-on-surface-variant rounded hover:border-primary hover:text-primary transition-all">VIEW</button>
+</td>
+</tr>
+<!-- Row 4 -->
+<tr class="hover:bg-surface-container-highest/50 transition-colors group">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded bg-surface-variant flex items-center justify-center text-[10px] font-bold headline">PS</div>
+<div>
+<p class="text-sm font-medium text-white">Priya S</p>
+<p class="text-[10px] font-mono text-on-surface-variant">ID: 6722-V5</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-4 text-right">
+<p class="text-sm font-mono font-bold text-white">$2,100.00</p>
+</td>
+<td class="px-6 py-4">
+<div class="flex flex-col">
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-xs text-on-surface-variant" data-icon="location_on">location_on</span>
+<span class="text-xs">Singapore</span>
+</div>
+<span class="text-[10px] font-mono text-on-surface-variant">08:30 PM</span>
+</div>
+</td>
+<td class="px-6 py-4">
+<div class="flex flex-col items-center gap-1">
+<span class="text-xs font-mono font-bold text-tertiary">78/100</span>
+<div class="w-20 h-1 bg-surface-container-highest rounded-full overflow-hidden">
+<div class="h-full bg-tertiary" style="width: 78%"></div>
+</div>
+</div>
+</td>
+<td class="px-6 py-4">
+<span class="text-[10px] font-mono bg-tertiary-container/10 text-tertiary px-2 py-0.5 rounded border border-tertiary/20 uppercase font-bold tracking-widest">REVIEW</span>
+</td>
+<td class="px-6 py-4 text-right">
+<button class="px-3 py-1 text-[10px] font-mono border border-outline-variant/30 text-on-surface-variant rounded hover:border-primary hover:text-primary transition-all">VIEW</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<!-- Visual Intelligence Block -->
+<div class="grid grid-cols-2 gap-6">
+<div class="bg-surface-container-low p-6 rounded-xl border border-outline-variant/10">
+<h4 class="text-[10px] font-mono text-on-surface-variant uppercase tracking-widest mb-4">Risk Distribution</h4>
+<div class="h-40 flex items-end justify-between gap-2 px-4">
+<div class="w-full bg-primary/20 rounded-t h-[30%]"></div>
+<div class="w-full bg-primary/40 rounded-t h-[45%]"></div>
+<div class="w-full bg-primary rounded-t h-[20%]"></div>
+<div class="w-full bg-tertiary/40 rounded-t h-[65%]"></div>
+<div class="w-full bg-error rounded-t h-[15%]"></div>
+<div class="w-full bg-primary/60 rounded-t h-[55%]"></div>
+</div>
+<div class="flex justify-between mt-2 px-4">
+<span class="text-[8px] font-mono text-on-surface-variant">00h</span>
+<span class="text-[8px] font-mono text-on-surface-variant">12h</span>
+<span class="text-[8px] font-mono text-on-surface-variant">24h</span>
+</div>
+</div>
+<div class="bg-surface-container-low p-6 rounded-xl border border-outline-variant/10 flex flex-col justify-center items-center text-center">
+<div class="w-16 h-16 rounded-full border-4 border-primary/20 border-t-primary animate-spin mb-4"></div>
+<p class="text-sm font-bold text-white headline">Scanning Network Nodes</p>
+<p class="text-[10px] font-mono text-on-surface-variant mt-1">LATENCY: 14ms | THROUGHPUT: 2.4GB/s</p>
+</div>
+</div>
+</div>
+<!-- Right Intelligence Panel (4 cols) -->
+<aside class="xl:col-span-4 space-y-6">
+<div class="bg-surface-container-low rounded-xl border border-outline-variant/10 h-full flex flex-col">
+<div class="px-6 py-4 border-b border-outline-variant/10 flex items-center justify-between">
+<h3 class="headline font-bold text-white tracking-tight text-sm">Agent Activity</h3>
+<span class="text-[9px] font-mono text-primary animate-pulse">LIVE POLLING</span>
+</div>
+<div class="flex-1 p-6 space-y-6">
+<!-- Event 1 -->
+<div class="flex gap-4 relative">
+<div class="absolute top-8 left-3 bottom-[-24px] w-px bg-outline-variant/10"></div>
+<div class="z-10 w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center shrink-0">
+<span class="w-2 h-2 rounded-full bg-primary"></span>
+</div>
+<div class="space-y-2">
+<div class="flex items-center gap-2">
+<span class="text-[9px] font-mono px-1.5 py-0.5 bg-primary/10 text-primary border border-primary/20 rounded uppercase">Detector</span>
+<span class="text-[10px] font-mono text-on-surface-variant">2s ago</span>
+</div>
+<p class="text-xs text-white leading-relaxed">System flagged <span class="text-primary font-mono font-bold">#4821</span> for anomalous high-value transfer pattern from <span class="italic">Nigeria</span>.</p>
+</div>
+</div>
+<!-- Event 2 -->
+<div class="flex gap-4 relative">
+<div class="absolute top-8 left-3 bottom-[-24px] w-px bg-outline-variant/10"></div>
+<div class="z-10 w-6 h-6 rounded-full bg-secondary/20 flex items-center justify-center shrink-0">
+<span class="w-2 h-2 rounded-full bg-secondary"></span>
+</div>
+<div class="space-y-2">
+<div class="flex items-center gap-2">
+<span class="text-[9px] font-mono px-1.5 py-0.5 bg-secondary/10 text-secondary border border-secondary/20 rounded uppercase">Investigator</span>
+<span class="text-[10px] font-mono text-on-surface-variant">5s ago</span>
+</div>
+<p class="text-xs text-white leading-relaxed">In-depth behavioral analysis completed for <span class="text-secondary font-bold">Jimmy K</span>. Device fingerprint mismatch confirmed.</p>
+</div>
+</div>
+<!-- Event 3 -->
+<div class="flex gap-4">
+<div class="z-10 w-6 h-6 rounded-full bg-error/20 flex items-center justify-center shrink-0">
+<span class="w-2 h-2 rounded-full bg-error"></span>
+</div>
+<div class="space-y-2">
+<div class="flex items-center gap-2">
+<span class="text-[9px] font-mono px-1.5 py-0.5 bg-error-container/20 text-error border border-error/20 rounded uppercase">Decision</span>
+<span class="text-[10px] font-mono text-on-surface-variant">6s ago</span>
+</div>
+<p class="text-xs text-white leading-relaxed">Auto-rejection enforced for transaction <span class="text-error font-mono font-bold">#4821</span>. User account locked pending MFA.</p>
+</div>
+</div>
+</div>
+<div class="p-6 mt-auto">
+<div class="bg-surface-container-highest p-4 rounded-lg border border-outline-variant/20">
+<div class="flex items-center gap-2 mb-2">
+<span class="material-symbols-outlined text-tertiary text-sm" data-icon="lightbulb">lightbulb</span>
+<span class="text-[10px] font-bold text-white uppercase tracking-tighter">AI Suggestion</span>
+</div>
+<p class="text-[11px] text-on-surface-variant leading-tight mb-3">Detected coordinated velocity attack pattern across 4 accounts in Singapore region.</p>
+<button class="w-full py-2 bg-primary text-on-primary-container text-[10px] font-bold headline rounded-md hover:bg-primary-container transition-colors uppercase tracking-widest">Deploy Firewall Filter</button>
+</div>
+</div>
+</div>
+</aside>
+</div>
+</div>
+</main>
+<!-- Global System Status Footer (High Density Indicator) -->
+<footer class="fixed bottom-0 left-[240px] right-0 h-8 bg-surface-container-lowest border-t border-outline-variant/10 px-8 flex items-center justify-between z-[60]">
+<div class="flex items-center gap-6">
+<div class="flex items-center gap-2">
+<span class="text-[9px] font-mono text-on-surface-variant uppercase tracking-widest">CPU:</span>
+<span class="text-[9px] font-mono text-primary">24%</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="text-[9px] font-mono text-on-surface-variant uppercase tracking-widest">MEM:</span>
+<span class="text-[9px] font-mono text-primary">1.4GB</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="text-[9px] font-mono text-on-surface-variant uppercase tracking-widest">AUTH:</span>
+<span class="text-[9px] font-mono text-primary">TOKEN_VALID</span>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<div class="flex items-center gap-2">
+<div class="w-1.5 h-1.5 bg-primary rounded-full"></div>
+<span class="text-[9px] font-mono text-on-surface-variant uppercase">Secure Connection</span>
+</div>
+<div class="h-3 w-px bg-outline-variant/20"></div>
+<span class="text-[9px] font-mono text-on-surface-variant">V 2.4.12-PROD</span>
+</div>
+</footer>
+</body></html>

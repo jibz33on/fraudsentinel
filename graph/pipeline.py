@@ -12,6 +12,8 @@ from langgraph.graph import StateGraph
 from graph.state import FraudState
 from agents.detector.detector import DetectorAgent
 from agents.shared.embed import embed
+from agents.investigator.profiler import get_user_profile
+from agents.investigator.investigator import investigate
 
 _SUPABASE_URL = os.environ["SUPABASE_URL"]
 _SUPABASE_KEY = os.environ["SUPABASE_SERVICE_KEY"]
@@ -76,11 +78,50 @@ def detector_node(state: FraudState) -> FraudState:
     }
 
 
+def investigator_node(state: FraudState) -> dict:
+    profile = get_user_profile(state["user_id"])
+    transaction = {
+        "user_id": state["user_id"],
+        "amount": state["amount"],
+        "country": state["country"],
+        "hour": state["hour"],
+        "merchant": state["merchant"],
+        "method": state["method"],
+    }
+    result = investigate(transaction, profile)
+
+    patch = {
+        "investigator_summary": result["summary"],
+        "investigator_deviation": result["deviation_score"],
+    }
+
+    try:
+        resp = requests.patch(
+            f"{_SUPABASE_URL}/rest/v1/agent_decisions",
+            headers=_HEADERS,
+            params={"transaction_id": f"eq.{state['transaction_id']}"},
+            json=patch,
+            timeout=10,
+        )
+        resp.raise_for_status()
+    except Exception as e:
+        print(f"[pipeline] Investigator Supabase patch failed: {e}")
+        print(f"[pipeline] Response body: {resp.text}")
+
+    return {
+        **state,
+        "investigator_summary": result["summary"],
+        "investigator_deviation": result["deviation_score"],
+    }
+
+
 def _build_graph():
     graph = StateGraph(FraudState)
     graph.add_node("detector", detector_node)
+    graph.add_node("investigator", investigator_node)
     graph.set_entry_point("detector")
-    graph.set_finish_point("detector")
+    graph.add_edge("detector", "investigator")
+    graph.set_finish_point("investigator")
     return graph.compile()
 
 
@@ -111,7 +152,7 @@ def run_pipeline(transaction: dict) -> FraudState:
 if __name__ == "__main__":
     test_txn = {
         "transaction_id": "txn-4821",
-        "user_id": "user-001",
+        "user_id": "55472a7d-8980-4777-b98d-e8b65e65d33c",
         "amount": 4500.0,
         "country": "NG",
         "hour": 3,

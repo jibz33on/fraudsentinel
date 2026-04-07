@@ -32,6 +32,15 @@ class DetectorAgent:
     def analyze(self, transaction: dict, user_profile: dict) -> dict:
         txn_id = transaction.get("id", "unknown")
 
+        # TODO: Layer 0 — pgvector memory search (add after pipeline has data)
+        # Steps:
+        #   1. call search_similar(f"{transaction['country']} {transaction['merchant']} {transaction['method']}")
+        #   2. filter results where decision_verdict == 'REJECTED'
+        #   3. if 2+ similar past frauds found → add 'similar_past_fraud' to flags
+        #   4. scorer adds +15 points for this flag
+        # Reason: skipped during initial build because agent_decisions was empty
+        # Enable after: all 8 seed transactions run through pipeline
+
         # Layer 1: rules
         flags = check_rules(transaction, user_profile)
 

@@ -21,7 +21,7 @@ def get_user_profile(user_id: str) -> dict:
         f"{_URL}/rest/v1/users",
         headers=_HEADERS,
         params={"id": f"eq.{user_id}", "select": "avg_spend,account_age_days,risk_profile"},
-        timeout=10,
+        timeout=30,
     )
     resp.raise_for_status()
     users = resp.json()
@@ -40,7 +40,7 @@ def get_user_profile(user_id: str) -> dict:
             "order": "created_at.desc",
             "limit": 20,
         },
-        timeout=10,
+        timeout=30,
     )
     resp.raise_for_status()
     txns = resp.json()

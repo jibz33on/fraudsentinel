@@ -7,7 +7,7 @@ import type {
   UserProfile,
 } from "./types"
 
-const USE_MOCK = true
+const USE_MOCK = false
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"
 
 // ─── Mock Data ────────────────────────────────────────────────────────────────
@@ -171,7 +171,8 @@ export async function getTransaction(id: string): Promise<AgentDecision> {
   if (USE_MOCK) return MOCK_AGENT_DECISION
   try {
     const res = await fetch(`${API_BASE}/transaction/${id}`)
-    return res.json()
+    const data = await res.json()
+    return data.decision
   } catch {
     return MOCK_AGENT_DECISION
   }
@@ -192,6 +193,7 @@ export async function getAgentActivity(): Promise<AgentActivityItem[]> {
   if (USE_MOCK) return MOCK_ACTIVITY
   try {
     const res = await fetch(`${API_BASE}/activity`)
+    if (!res.ok) return []
     return res.json()
   } catch {
     return []

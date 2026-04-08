@@ -1,30 +1,20 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
-import os
+
+from api.routers import health, analyze, dashboard
 
 app = FastAPI()
 
-# Serve static assets
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 app.mount("/static", StaticFiles(directory="dashboard/static"), name="static")
 
-# Serve HTML pages directly as files
-@app.get("/")
-def index():
-    return FileResponse("dashboard/templates/index.html")
-
-@app.get("/transaction")
-def transaction():
-    return FileResponse("dashboard/templates/transaction.html")
-
-@app.get("/user")
-def user():
-    return FileResponse("dashboard/templates/user.html")
-
-@app.get("/health")
-def health():
-    return {"status": "ok", "agents": {
-        "detector": "online",
-        "investigator": "online",
-        "decision": "online"
-    }}
+app.include_router(health.router)
+app.include_router(analyze.router)
+app.include_router(dashboard.router)

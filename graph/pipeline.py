@@ -14,6 +14,7 @@ from agents.detector.detector import DetectorAgent
 from agents.shared.embed import embed
 from agents.investigator.profiler import get_user_profile
 from agents.investigator.investigator import investigate
+from agents.decision.decision import decide
 
 _SUPABASE_URL = os.environ["SUPABASE_URL"]
 _SUPABASE_KEY = os.environ["SUPABASE_SERVICE_KEY"]
@@ -115,13 +116,54 @@ def investigator_node(state: FraudState) -> dict:
     }
 
 
+def decision_node(state: FraudState) -> dict:
+    detector = {
+        "detector_score": state["detector_score"],
+        "detector_flags": state["detector_flags"],
+        "detector_verdict": state["detector_verdict"],
+    }
+    investigator = {
+        "investigator_deviation": state["investigator_deviation"],
+        "investigator_summary": state["investigator_summary"],
+    }
+    result = decide(detector, investigator)
+
+    patch = {
+        "decision_verdict": result["verdict"],
+        "decision_confidence": result["confidence"],
+        "decision_reason": result["reason"],
+    }
+
+    try:
+        resp = requests.patch(
+            f"{_SUPABASE_URL}/rest/v1/agent_decisions",
+            headers=_HEADERS,
+            params={"transaction_id": f"eq.{state['transaction_id']}"},
+            json=patch,
+            timeout=30,
+        )
+        resp.raise_for_status()
+    except Exception as e:
+        print(f"[pipeline] Decision Supabase patch failed: {e}")
+        print(f"[pipeline] Response body: {resp.text}")
+
+    return {
+        **state,
+        "decision_verdict": result["verdict"],
+        "decision_confidence": result["confidence"],
+        "decision_reason": result["reason"],
+    }
+
+
 def _build_graph():
     graph = StateGraph(FraudState)
     graph.add_node("detector", detector_node)
     graph.add_node("investigator", investigator_node)
+    graph.add_node("decision", decision_node)
     graph.set_entry_point("detector")
     graph.add_edge("detector", "investigator")
-    graph.set_finish_point("investigator")
+    graph.add_edge("investigator", "decision")
+    graph.set_finish_point("decision")
     return graph.compile()
 
 

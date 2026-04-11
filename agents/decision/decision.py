@@ -1,10 +1,3 @@
-import os
-import requests
-from dotenv import load_dotenv
-
-load_dotenv()
-
-
 def decide(detector: dict, investigator: dict) -> dict:
     detector_score = detector["detector_score"]
     investigator_deviation = investigator["investigator_deviation"]
@@ -40,35 +33,12 @@ def decide(detector: dict, investigator: dict) -> dict:
         f"Write a 2 sentence explanation of this decision."
     )
 
-    if False:  # TODO: LLM disabled — NVIDIA NIM free tier times out >30s
-    # Options to fix:
-    #   1. Switch to faster model: meta/llama-3.1-8b-instruct (smaller, faster)
-    #   2. Switch to OpenRouter: mistralai/mistral-7b-instruct (free, faster)
-    #   3. Increase timeout to 60s and add retry logic
-    #   4. Move LLM call to background task (non-blocking)
-    # Re-enable after choosing an option above
-        api_key = os.getenv("NVIDIA_API_KEY")
-        response = requests.post(
-            "https://integrate.api.nvidia.com/v1/chat/completions",
-            headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
-            json={
-                "model": "meta/llama-3.3-70b-instruct",
-                "messages": [{"role": "user", "content": prompt}],
-                "max_tokens": 120,
-                "temperature": 0.3,
-            },
-            timeout=30,
-        )
-        reason = response.json()["choices"][0]["message"]["content"].strip()
-
-    # fallback: use detector verdict as final decision
-    final_verdict = detector.get("detector_verdict", verdict)
-    final_confidence = confidence
-    reason = f"[LLM disabled] Combined score {combined:.0f}/100 → {verdict}"
+    from tools.llm_router import call_llm
+    reason = call_llm(prompt)
 
     return {
         "verdict": verdict,
-        "confidence": final_confidence,
+        "confidence": confidence,
         "reason": reason,
         "combined_score": combined,
     }

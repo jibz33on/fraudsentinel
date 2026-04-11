@@ -52,7 +52,7 @@ class DetectorAgent:
         reasoning = None
         llm_used = False
 
-        if False:  # TODO: re-enable after pipeline testing complete
+        if LLM_AMBIGUOUS_LOW <= score <= LLM_AMBIGUOUS_HIGH:
             try:
                 from tools.llm_router import call_llm
                 prompt = LLM_PROMPT.format(

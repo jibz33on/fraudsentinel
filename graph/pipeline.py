@@ -6,153 +6,150 @@ load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), '..', '.env'))
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-import requests
+import time
+
 from langgraph.graph import StateGraph
 
 from graph.state import FraudState
 from agents.detector.detector import DetectorAgent
-from agents.shared.embed import embed
+from tools.embed import embed
 from agents.investigator.profiler import get_user_profile
 from agents.investigator.investigator import investigate
 from agents.decision.decision import decide
-
-_SUPABASE_URL = os.environ["SUPABASE_URL"]
-_SUPABASE_KEY = os.environ["SUPABASE_SERVICE_KEY"]
-_HEADERS = {
-    "apikey": _SUPABASE_KEY,
-    "Authorization": f"Bearer {_SUPABASE_KEY}",
-    "Content-Type": "application/json",
-    "Prefer": "return=representation",
-}
+from db.decisions import insert_decision, patch_decision, patch_status
 
 _detector = DetectorAgent()
 
 
 def detector_node(state: FraudState) -> FraudState:
-    transaction = {
-        "id": state["transaction_id"],
-        "user_id": state["user_id"],
-        "amount": state["amount"],
-        "country": state["country"],
-        "hour": state["hour"],
-        "merchant": state["merchant"],
-        "method": state["method"],
-    }
-    user_profile = {}
-
-    result = _detector.analyze(transaction, user_profile)
-
-    score = result["risk_score"]
-    verdict = result["verdict"]
-    flags = result["flags"]
-
-    embed_text = (
-        f"verdict:{verdict} score:{score} flags:{flags} "
-        f"country:{state['country']} amount:{state['amount']} hour:{state['hour']}"
-    )
-    embedding = embed(embed_text, input_type="passage")
-
-    row = {
-        "transaction_id": state["transaction_id"],
-        "detector_score": score,
-        "detector_flags": flags,
-        "embedding": str(embedding),
-    }
-
     try:
-        resp = requests.post(
-            f"{_SUPABASE_URL}/rest/v1/agent_decisions",
-            headers=_HEADERS,
-            json=row,
-            timeout=10,
-        )
-        resp.raise_for_status()
-    except Exception as e:
-        print(f"[pipeline] Supabase write failed: {e}")
-        print(f"[pipeline] Response body: {resp.text}")
+        transaction = {
+            "id": state["transaction_id"],
+            "user_id": state["user_id"],
+            "amount": state["amount"],
+            "country": state["country"],
+            "hour": state["hour"],
+            "merchant": state["merchant"],
+            "method": state["method"],
+        }
+        start = time.time()
+        result = _detector.analyze(transaction, {})
+        detector_duration_ms = int((time.time() - start) * 1000)
 
-    return {
-        **state,
-        "detector_score": score,
-        "detector_flags": flags,
-        "detector_verdict": verdict,
-    }
+        score = result["risk_score"]
+        verdict = result["verdict"]
+        flags = result["flags"]
+
+        embed_text = (
+            f"verdict:{verdict} score:{score} flags:{flags} "
+            f"country:{state['country']} amount:{state['amount']} hour:{state['hour']}"
+        )
+        embedding = embed(embed_text, input_type="passage")
+
+        try:
+            insert_decision({
+                "transaction_id": state["transaction_id"],
+                "detector_score": score,
+                "detector_flags": flags,
+                "embedding": str(embedding),
+                "detector_duration_ms": detector_duration_ms,
+            })
+        except Exception as e:
+            print(f"[pipeline] detector insert failed: {e}")
+
+        return {
+            **state,
+            "detector_score": score,
+            "detector_flags": flags,
+            "detector_verdict": verdict,
+        }
+    except Exception as e:
+        print(f"[pipeline] detector agent failed: {e}")
+        return {
+            **state,
+            "detector_score": 0,
+            "detector_flags": [],
+            "detector_verdict": "REVIEW",
+        }
 
 
 def investigator_node(state: FraudState) -> dict:
-    profile = get_user_profile(state["user_id"])
-    transaction = {
-        "user_id": state["user_id"],
-        "amount": state["amount"],
-        "country": state["country"],
-        "hour": state["hour"],
-        "merchant": state["merchant"],
-        "method": state["method"],
-    }
-    result = investigate(transaction, profile)
-
-    patch = {
-        "investigator_summary": result["summary"],
-        "investigator_deviation": result["deviation_score"],
-    }
-
     try:
-        resp = requests.patch(
-            f"{_SUPABASE_URL}/rest/v1/agent_decisions",
-            headers=_HEADERS,
-            params={"transaction_id": f"eq.{state['transaction_id']}"},
-            json=patch,
-            timeout=10,
-        )
-        resp.raise_for_status()
-    except Exception as e:
-        print(f"[pipeline] Investigator Supabase patch failed: {e}")
-        print(f"[pipeline] Response body: {resp.text}")
+        profile = get_user_profile(state["user_id"])
+        transaction = {
+            "user_id": state["user_id"],
+            "amount": state["amount"],
+            "country": state["country"],
+            "hour": state["hour"],
+            "merchant": state["merchant"],
+            "method": state["method"],
+        }
+        start = time.time()
+        result = investigate(transaction, profile)
+        investigator_duration_ms = int((time.time() - start) * 1000)
 
-    return {
-        **state,
-        "investigator_summary": result["summary"],
-        "investigator_deviation": result["deviation_score"],
-    }
+        try:
+            patch_decision(state["transaction_id"], {
+                "investigator_summary": result["summary"],
+                "investigator_deviation": result["deviation_score"],
+                "investigator_duration_ms": investigator_duration_ms,
+            })
+        except Exception as e:
+            print(f"[pipeline] investigator patch failed: {e}")
+
+        return {
+            **state,
+            "investigator_summary": result["summary"],
+            "investigator_deviation": result["deviation_score"],
+        }
+    except Exception as e:
+        print(f"[pipeline] investigator agent failed: {e}")
+        return {
+            **state,
+            "investigator_summary": "unavailable",
+            "investigator_deviation": 0,
+        }
 
 
 def decision_node(state: FraudState) -> dict:
-    detector = {
-        "detector_score": state["detector_score"],
-        "detector_flags": state["detector_flags"],
-        "detector_verdict": state["detector_verdict"],
-    }
-    investigator = {
-        "investigator_deviation": state["investigator_deviation"],
-        "investigator_summary": state["investigator_summary"],
-    }
-    result = decide(detector, investigator)
-
-    patch = {
-        "decision_verdict": result["verdict"],
-        "decision_confidence": result["confidence"],
-        "decision_reason": result["reason"],
-    }
-
     try:
-        resp = requests.patch(
-            f"{_SUPABASE_URL}/rest/v1/agent_decisions",
-            headers=_HEADERS,
-            params={"transaction_id": f"eq.{state['transaction_id']}"},
-            json=patch,
-            timeout=30,
-        )
-        resp.raise_for_status()
-    except Exception as e:
-        print(f"[pipeline] Decision Supabase patch failed: {e}")
-        print(f"[pipeline] Response body: {resp.text}")
+        detector = {
+            "detector_score": state["detector_score"],
+            "detector_flags": state["detector_flags"],
+            "detector_verdict": state["detector_verdict"],
+        }
+        investigator = {
+            "investigator_deviation": state["investigator_deviation"],
+            "investigator_summary": state["investigator_summary"],
+        }
+        start = time.time()
+        result = decide(detector, investigator)
+        decision_duration_ms = int((time.time() - start) * 1000)
 
-    return {
-        **state,
-        "decision_verdict": result["verdict"],
-        "decision_confidence": result["confidence"],
-        "decision_reason": result["reason"],
-    }
+        try:
+            patch_decision(state["transaction_id"], {
+                "decision_verdict": result["verdict"],
+                "decision_confidence": result["confidence"],
+                "decision_reason": result["reason"],
+                "decision_duration_ms": decision_duration_ms,
+            })
+        except Exception as e:
+            print(f"[pipeline] decision patch failed: {e}")
+
+        return {
+            **state,
+            "decision_verdict": result["verdict"],
+            "decision_confidence": result["confidence"],
+            "decision_reason": result["reason"],
+        }
+    except Exception as e:
+        print(f"[pipeline] decision agent failed: {e}")
+        return {
+            **state,
+            "decision_verdict": "REVIEW",
+            "decision_confidence": 0,
+            "decision_reason": "unavailable",
+        }
 
 
 def _build_graph():
@@ -171,8 +168,9 @@ _graph = _build_graph()
 
 
 def run_pipeline(transaction: dict) -> FraudState:
+    transaction_id = transaction.get("transaction_id", transaction.get("id", "unknown"))
     initial_state: FraudState = {
-        "transaction_id": transaction.get("transaction_id", transaction.get("id", "unknown")),
+        "transaction_id": transaction_id,
         "user_id": transaction.get("user_id", ""),
         "amount": transaction.get("amount", 0.0),
         "country": transaction.get("country", ""),
@@ -188,7 +186,17 @@ def run_pipeline(transaction: dict) -> FraudState:
         "decision_confidence": 0,
         "decision_reason": "",
     }
-    return _graph.invoke(initial_state)
+    try:
+        result = _graph.invoke(initial_state)
+        patch_status(transaction_id, "complete")
+        return result
+    except Exception as e:
+        print(f"[pipeline] pipeline failed for {transaction_id}: {e}")
+        try:
+            patch_status(transaction_id, "failed")
+        except Exception:
+            pass
+        raise
 
 
 if __name__ == "__main__":

@@ -84,7 +84,27 @@ def investigate(transaction: dict, profile: dict) -> dict:
         signals["merchant"] = 0
 
     deviation_score = sum(signals.values())
-    summary = ", ".join(notes) if notes else "no significant deviations"
+
+    if deviation_score > 50:
+        from tools.llm_router import call_llm
+        avg_spend = profile.get("avg_spend") or profile.get("avg_amount") or 0
+        usual_location = ", ".join(profile.get("known_countries", [])) or "unknown"
+        usual_hours = profile.get("typical_hours", [])
+        hour = transaction.get("hour", 0)
+        amount = transaction.get("amount", 0)
+        location = transaction.get("country", "")
+        prompt = (
+            f"User normally spends ${avg_spend:.0f} in {usual_location} "
+            f"during hours {usual_hours}. Today spent ${amount:.0f} in "
+            f"{location} at hour {hour}. Deviation signals: {', '.join(notes)}. "
+            f"How suspicious is this? One sentence explanation."
+        )
+        try:
+            summary = call_llm(prompt)
+        except Exception:
+            summary = ", ".join(notes) if notes else "no significant deviations"
+    else:
+        summary = ", ".join(notes) if notes else "no significant deviations"
 
     return {
         "deviation_score": deviation_score,

@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import FileResponse, JSONResponse
 
-from db.decisions import get_decision, list_decisions
+from db.decisions import get_decision, list_decisions, patch_decision
 from db.transactions import get_transaction
 from db.users import get_user
 
@@ -153,3 +153,31 @@ def get_activity():
     except Exception as e:
         print(f"[activity] error: {e}")
         return []
+
+
+@router.post("/transaction/{transaction_id}/approve")
+def approve_transaction(transaction_id: str):
+    try:
+        row = get_decision(transaction_id)
+        if not row:
+            raise HTTPException(status_code=404, detail="Transaction not found")
+        patch_decision(transaction_id, {"decision_verdict": "APPROVED"})
+        return {"transaction_id": transaction_id, "verdict": "APPROVED"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"error": str(e)})
+
+
+@router.post("/transaction/{transaction_id}/reject")
+def reject_transaction(transaction_id: str):
+    try:
+        row = get_decision(transaction_id)
+        if not row:
+            raise HTTPException(status_code=404, detail="Transaction not found")
+        patch_decision(transaction_id, {"decision_verdict": "REJECTED"})
+        return {"transaction_id": transaction_id, "verdict": "REJECTED"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"error": str(e)})

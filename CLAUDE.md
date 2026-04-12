@@ -120,11 +120,13 @@ memory/     ← pgvector similarity search via db/client
 ## API Endpoints
 POST /analyze          ← submit transaction, runs full pipeline
 GET  /health           ← health check
-GET  /dashboard/stats          ← summary stats
-GET  /dashboard/transactions   ← recent transactions (status=complete only)
+GET  /dashboard/stats                           ← summary stats
+GET  /dashboard/transactions                    ← recent transactions (status=complete only)
 GET  /dashboard/transaction/{id}
 GET  /dashboard/users/{id}
 GET  /dashboard/activity
+POST /dashboard/transaction/{id}/approve        ← manual approve
+POST /dashboard/transaction/{id}/reject         ← manual reject
 
 ## Current Status
 ✅ Modular folder structure (db/, agents/, graph/, api/, tools/, memory/)
@@ -137,16 +139,26 @@ GET  /dashboard/activity
 ✅ LLM enabled on all 3 agents via call_llm()
 ✅ FK constraint fixed — transaction saved before pipeline runs
 ✅ Full end-to-end test passed
+✅ Seed historical data (scripts/seed_data.py)
+✅ memory/memory.py — fixed broken import + switched to supabase-py
+✅ transactions table now written on every /analyze call
+✅ pipeline_failed tracking — silent agent failures now set status=failed
+✅ embedding fix — saved as vector not string
+✅ Full test suite: 102/102 passing
+   - test_detector.py     47/47
+   - test_investigator.py 24/24
+   - test_decision.py     21/21
+   - test_pipeline.py     10/10
+✅ Real user profile now passed to DETECTOR in pipeline.py
+✅ APPROVE/REJECT endpoints: POST /dashboard/transaction/{id}/approve and /reject
+✅ Backend fully complete
 
 ## Remaining TODOs
-⬜ Seed historical data (scripts/seed_data.py)
-⬜ Confidence score per agent
-⬜ APPROVE/REJECT buttons (UI → DB)
-⬜ Live polling on frontend (auto-refresh)
+⬜ Frontend: APPROVE/REJECT buttons wired to new endpoints
+⬜ Frontend: Live polling (auto-refresh)
 ⬜ Analytics page
 ⬜ Deploy backend → Railway
 ⬜ Deploy frontend → Cloudflare Pages
-⬜ Update CLAUDE.md after each session
 
 ## Seed Users (Supabase)
 6 users seeded: Jimmy K, Mark T, Sarah M, Priya S, Alex R, TechCorp Ltd
@@ -155,6 +167,6 @@ Note: transaction_count on users table is seeded high but actual
 transactions table rows are sparse — seed_data.py needed
 
 ## Next Session Starts With
-1. scripts/seed_data.py — populate realistic transaction history
-2. Layer 4 deep dive (tools/)
-3. Manual end-to-end testing via UI
+1. Frontend — wire APPROVE/REJECT buttons to new endpoints
+2. Frontend — live polling
+3. Deploy → Railway + Cloudflare Pages

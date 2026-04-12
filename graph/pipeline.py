@@ -32,8 +32,9 @@ def detector_node(state: FraudState) -> FraudState:
             "merchant": state["merchant"],
             "method": state["method"],
         }
+        profile = get_user_profile(state["user_id"])
         start = time.time()
-        result = _detector.analyze(transaction, {})
+        result = _detector.analyze(transaction, profile)
         detector_duration_ms = int((time.time() - start) * 1000)
 
         score = result["risk_score"]
@@ -51,7 +52,7 @@ def detector_node(state: FraudState) -> FraudState:
                 "transaction_id": state["transaction_id"],
                 "detector_score": score,
                 "detector_flags": flags,
-                "embedding": str(embedding),
+                "embedding": embedding,
                 "detector_duration_ms": detector_duration_ms,
             })
         except Exception as e:
@@ -70,6 +71,7 @@ def detector_node(state: FraudState) -> FraudState:
             "detector_score": 0,
             "detector_flags": [],
             "detector_verdict": "REVIEW",
+            "pipeline_failed": True,
         }
 
 
@@ -108,6 +110,7 @@ def investigator_node(state: FraudState) -> dict:
             **state,
             "investigator_summary": "unavailable",
             "investigator_deviation": 0,
+            "pipeline_failed": True,
         }
 
 
@@ -149,6 +152,7 @@ def decision_node(state: FraudState) -> dict:
             "decision_verdict": "REVIEW",
             "decision_confidence": 0,
             "decision_reason": "unavailable",
+            "pipeline_failed": True,
         }
 
 
@@ -185,10 +189,14 @@ def run_pipeline(transaction: dict) -> FraudState:
         "decision_verdict": "",
         "decision_confidence": 0,
         "decision_reason": "",
+        "pipeline_failed": False,
     }
     try:
         result = _graph.invoke(initial_state)
-        patch_status(transaction_id, "complete")
+        if result.get("pipeline_failed"):
+            patch_status(transaction_id, "failed")
+        else:
+            patch_status(transaction_id, "complete")
         return result
     except Exception as e:
         print(f"[pipeline] pipeline failed for {transaction_id}: {e}")

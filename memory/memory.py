@@ -30,35 +30,23 @@ Requires this SQL function in Supabase (run once):
 
 import os
 import sys
-import requests
 from dotenv import load_dotenv
 
 load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), '..', '.env'))
 
 # Allow running from repo root without installing the package
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from agents.shared.embed import embed
-
-_URL = os.environ["SUPABASE_URL"]
-_KEY = os.environ["SUPABASE_SERVICE_KEY"]
-_HEADERS = {
-    "apikey": _KEY,
-    "Authorization": f"Bearer {_KEY}",
-    "Content-Type": "application/json",
-}
+from tools.embed import embed
+from db.client import supabase
 
 
 def search_similar(text: str, limit: int = 3) -> list[dict]:
     vector = embed(text, input_type="query")
-    payload = {"query_embedding": vector, "match_count": limit}
-    response = requests.post(
-        f"{_URL}/rest/v1/rpc/match_agent_decisions",
-        headers=_HEADERS,
-        json=payload,
-        timeout=10,
-    )
-    response.raise_for_status()
-    return response.json()
+    result = supabase.rpc(
+        "match_agent_decisions",
+        {"query_embedding": vector, "match_count": limit}
+    ).execute()
+    return result.data or []
 
 
 if __name__ == "__main__":

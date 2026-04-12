@@ -24,3 +24,6 @@ class FraudState(TypedDict):
     decision_verdict: str
     decision_confidence: int
     decision_reason: str
+
+    # Pipeline health
+    pipeline_failed: bool

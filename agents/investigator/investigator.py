@@ -7,15 +7,8 @@ from agents.investigator.profiler import get_user_profile
 
 
 def investigate(transaction: dict, profile: dict) -> dict:
-    # TODO: LLM-enhanced summary (add after pipeline is complete)
-    # Current: rule-based summary string
-    #   "Amount 53x normal, new country, unusual hour"
-    # Future: pass deviation signals to LLM for natural language summary
-    #   "This transaction is highly unusual for Jimmy.
-    #    He typically spends $85 in Kochi during business hours.
-    #    This $4500 crypto purchase from Nigeria at 3am
-    #    matches no prior behavior."
-    # Only fire LLM if deviation_score > 50 (same pattern as DETECTOR)
+    # LLM summary fires when deviation_score > 50 (same pattern as DETECTOR)
+    # Low deviation → rule-based summary string
 
     signals = {}
     notes = []

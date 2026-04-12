@@ -17,4 +17,4 @@ app.mount("/static", StaticFiles(directory="dashboard/static"), name="static")
 
 app.include_router(health.router)
 app.include_router(analyze.router)
-app.include_router(dashboard.router)
+app.include_router(dashboard.router, prefix="/dashboard")

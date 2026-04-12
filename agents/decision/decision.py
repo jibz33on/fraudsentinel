@@ -1,3 +1,9 @@
+from tools.llm_router import call_llm
+from tools.logger import get_logger
+
+logger = get_logger("DECISION")
+
+
 def decide(detector: dict, investigator: dict) -> dict:
     detector_score = detector["detector_score"]
     investigator_deviation = investigator["investigator_deviation"]
@@ -21,6 +27,8 @@ def decide(detector: dict, investigator: dict) -> dict:
     else:
         confidence = 60
 
+    logger.info(f"verdict: {verdict} | combined: {combined:.0f} | confidence: {confidence}")
+
     # Step 4 — LLM reasoning
     flags = ", ".join(detector.get("detector_flags", []))
     investigator_summary = investigator.get("investigator_summary", "")
@@ -33,7 +41,6 @@ def decide(detector: dict, investigator: dict) -> dict:
         f"Write a 2 sentence explanation of this decision."
     )
 
-    from tools.llm_router import call_llm
     reason = call_llm(prompt)
 
     return {

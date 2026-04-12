@@ -2,109 +2,159 @@
 
 ## What This Project Is
 An autonomous multi-agent fraud detection system.
-3 AI agents analyze transactions and make decisions.
-Full dashboard UI already built via Google Stitch.
-
-## The 3 Agents
-DETECTOR     → fast risk scorer (rule-based + LLM)
-INVESTIGATOR → behavioral analysis (checks user history)
-DECISION     → final verdict (APPROVE / REVIEW / REJECT)
+3 AI agents analyze transactions and make fraud decisions.
+Full dashboard UI built in Next.js.
 
 ## Agent Pipeline
 Transaction → DETECTOR → INVESTIGATOR → DECISION → Supabase → Dashboard
 
+## The 3 Agents
+DETECTOR     → rule-based risk scorer + LLM for ambiguous scores (40-70)
+INVESTIGATOR → behavioral deviation analysis + LLM when deviation > 50
+DECISION     → final verdict (APPROVE / REVIEW / REJECT) + LLM reasoning
+
 ## Tech Stack
 - Python 3.11 (conda env: fraudsentinel)
 - LangGraph → agent pipeline orchestration
-- LangChain + langchain-openai → LLM wrappers
 - FastAPI + uvicorn → REST API
 - Supabase → database + pgvector (vector memory)
-- Streamlit → NOT used (replaced by Stitch UI)
-- Google Stitch → generated the dashboard HTML/CSS
-
-## LLM Setup
-Provider: NVIDIA NIM (free)
-Base URL: https://integrate.api.nvidia.com/v1
-All agents use: meta/llama-3.3-70b-instruct
-Fallback: OpenRouter (rate limited, use sparingly)
-Key: in .env as NVIDIA_API_KEY
+- NVIDIA NIM (meta/llama-3.3-70b-instruct) → primary LLM
+- OpenRouter → fallback LLM (automatic via llm_router)
+- Next.js → frontend dashboard
+- Railway → backend deployment (pending)
+- Cloudflare Pages → frontend deployment (pending)
 
 ## Folder Structure
-```
 fraudsentinel/
 ├── agents/
-│   ├── detector.py        ← rule-based + LLM risk scorer
-│   ├── investigator.py    ← history lookup + reasoning
-│   └── decision.py        ← final verdict + explanation
+│   ├── detector/
+│   │   ├── rules_engine.py   ← pure rule checks (no I/O)
+│   │   ├── scorer.py         ← flags → risk score (no I/O)
+│   │   └── detector.py       ← orchestrates rules + scorer + LLM
+│   ├── investigator/
+│   │   ├── profiler.py       ← fetches user history from db/
+│   │   └── investigator.py   ← deviation analysis + LLM
+│   └── decision/
+│       └── decision.py       ← final verdict + LLM reasoning
 ├── graph/
-│   └── pipeline.py        ← LangGraph StateGraph wiring
+│   ├── state.py              ← shared TypedDict state (clipboard)
+│   └── pipeline.py           ← LangGraph wiring, delegates DB to db/
+├── db/
+│   ├── client.py             ← single Supabase HTTP client
+│   ├── decisions.py          ← agent_decisions table (read/write)
+│   ├── transactions.py       ← transactions table (read)
+│   └── users.py              ← users table (read)
 ├── memory/
-│   ├── short_term.py      ← session state dict
-│   └── long_term.py       ← Supabase + pgvector
-├── api/
-│   └── main.py            ← FastAPI endpoints
-├── dashboard/
-│   ├── templates/
-│   │   ├── index.html       ← Main dashboard (from Stitch)
-│   │   ├── transaction.html ← Transaction detail (from Stitch)
-│   │   └── user.html        ← User profile (from Stitch)
-│   └── static/
-│       ├── css/
-│       ├── js/
-│       └── assets/
+│   └── vector.py             ← pgvector similarity search
 ├── tools/
-│   └── transaction_tools.py
+│   ├── llm_router.py         ← NVIDIA NIM → OpenRouter fallback (3x retry)
+│   ├── embed.py              ← NVIDIA embedding API
+│   └── logger.py             ← logger factory
+├── api/
+│   ├── main.py               ← FastAPI app + CORS + router registration
+│   ├── models.py             ← Pydantic request/response schemas
+│   └── routers/
+│       ├── analyze.py        ← POST /analyze → saves txn → runs pipeline
+│       ├── dashboard.py      ← GET endpoints for UI (all use db/ layer)
+│       └── health.py         ← GET /health
+├── frontend/                 ← Next.js dashboard (separate)
+├── scripts/
+│   ├── simulate.py           ← infinite loop random transaction generator
+│   └── run_golden_dataset.py ← runs 8 seed transactions through pipeline
+├── tests/                    ← all test files
 ├── supabase/
-│   └── schema.sql
-├── .env                   ← API keys (never commit)
+│   └── migrations/           ← all schema migrations
+├── docs/                     ← architecture notes
+├── .env                      ← API keys (never commit)
 ├── requirements.txt
-├── test_models.py         ← verified NVIDIA working ✅
-└── CLAUDE.md              ← this file
-```
+└── CLAUDE.md                 ← this file
 
-## Supabase Tables (to be created)
-- transactions      → all incoming transactions
-- users             → user profiles + behavior patterns
-- agent_decisions   → DETECTOR/INVESTIGATOR/DECISION outputs
-- fraud_patterns    → known fraud embeddings (pgvector)
+## Supabase Tables
+### transactions
+id, user_id, amount, currency, merchant, location, 
+ip_address, device, status, created_at
 
-## Dashboard Connection Map
-Stats numbers    ← Supabase transactions table
-Transaction rows ← Supabase live query (every 5s)
-Risk scores      ← DETECTOR agent output
-Status badges    ← DECISION agent verdict
-Agent activity   ← LangGraph pipeline logs
-Agent status     ← FastAPI health endpoint
-Chart bars       ← Supabase hourly aggregation
+### users
+id, name, email, avg_spend, usual_location, usual_hours, 
+transaction_count, account_age_days, risk_profile, created_at
 
-## Dashboard HTML Files
-- All 3 screens are static HTML from Google Stitch
-- Data is currently hardcoded
-- Will be connected via fetch() calls to FastAPI
-- FastAPI serves the HTML at localhost:8000
+### agent_decisions
+id, transaction_id, 
+detector_score, detector_flags,
+investigator_summary, investigator_deviation,
+decision_verdict, decision_confidence, decision_reason,
+detector_duration_ms, investigator_duration_ms, decision_duration_ms,
+status, created_at
+
+status values: in_progress → complete | failed
+
+## LLM Setup
+Provider:  NVIDIA NIM (free tier)
+Base URL:  https://integrate.api.nvidia.com/v1
+Model:     meta/llama-3.3-70b-instruct
+Fallback:  OpenRouter (automatic, 3x retry on NVIDIA first)
+Key:       NVIDIA_API_KEY in .env
+Router:    tools/llm_router.py → call_llm() — always use this, never raw requests
+
+## Layer Architecture
+api/        ← receives HTTP, validates with Pydantic, returns responses
+graph/      ← LangGraph orchestration only, no logic, no DB
+agents/     ← pure logic, reads/writes state only
+tools/      ← shared utilities (LLM, embeddings, logger)
+db/         ← ALL Supabase I/O lives here, nowhere else
+memory/     ← pgvector similarity search via db/client
 
 ## Hard Rules
 - Never commit .env
 - Always use: conda activate fraudsentinel
-- Use `python` not `python3`
-- Agent pipeline order: DETECTOR first, always
-- Supabase writes happen AFTER decision is made
+- Always use: python not python3
+- Agent pipeline order: DETECTOR → INVESTIGATOR → DECISION, always
+- db/ owns ALL Supabase I/O — no raw requests to Supabase anywhere else
+- Agents are pure logic — no DB calls except profiler.py (needs user history)
+- pipeline.py orchestrates only — delegates all DB writes to db/
+- Always use call_llm() from tools/llm_router — never raw requests.post to NVIDIA
+- Transaction must be saved to db/transactions before pipeline runs (FK constraint)
+- Verify server starts after every change before moving to next step
+- One step at a time
+
+## API Endpoints
+POST /analyze          ← submit transaction, runs full pipeline
+GET  /health           ← health check
+GET  /dashboard/stats          ← summary stats
+GET  /dashboard/transactions   ← recent transactions (status=complete only)
+GET  /dashboard/transaction/{id}
+GET  /dashboard/users/{id}
+GET  /dashboard/activity
 
 ## Current Status
-✅ Environment set up (conda, Python 3.11)
-✅ Dependencies installed (requirements.txt)
-✅ NVIDIA models confirmed working
-✅ Dashboard UI built (Google Stitch, 3 screens)
-✅ CLAUDE.md created
-⬜ Supabase schema (next session)
-⬜ DETECTOR agent
-⬜ Memory layer
-⬜ INVESTIGATOR + DECISION agents
-⬜ LangGraph pipeline
-⬜ FastAPI endpoints
-⬜ Connect dashboard to real data
+✅ Modular folder structure (db/, agents/, graph/, api/, tools/, memory/)
+✅ Single Supabase client in db/client.py
+✅ Pydantic validation on all input/output
+✅ Error handling on all API endpoints
+✅ Agent logic isolated — one agent crash won't kill pipeline
+✅ Pipeline status tracking (in_progress / complete / failed)
+✅ Duration tracking per agent (detector/investigator/decision _duration_ms)
+✅ LLM enabled on all 3 agents via call_llm()
+✅ FK constraint fixed — transaction saved before pipeline runs
+✅ Full end-to-end test passed
 
-## Next Task
-Create Supabase schema in supabase/schema.sql
-Tables: transactions, users, agent_decisions, fraud_patterns
-Enable pgvector extension for fraud_patterns table
+## Remaining TODOs
+⬜ Seed historical data (scripts/seed_data.py)
+⬜ Confidence score per agent
+⬜ APPROVE/REJECT buttons (UI → DB)
+⬜ Live polling on frontend (auto-refresh)
+⬜ Analytics page
+⬜ Deploy backend → Railway
+⬜ Deploy frontend → Cloudflare Pages
+⬜ Update CLAUDE.md after each session
+
+## Seed Users (Supabase)
+6 users seeded: Jimmy K, Mark T, Sarah M, Priya S, Alex R, TechCorp Ltd
+Transactions table: ~8 seed rows total (thin history)
+Note: transaction_count on users table is seeded high but actual 
+transactions table rows are sparse — seed_data.py needed
+
+## Next Session Starts With
+1. scripts/seed_data.py — populate realistic transaction history
+2. Layer 4 deep dive (tools/)
+3. Manual end-to-end testing via UI

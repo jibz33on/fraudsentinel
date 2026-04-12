@@ -20,6 +20,7 @@ FLAG_WEIGHTS = {
     "Foreign transaction":           20,
     "High absolute amount":          10,
     "High transaction for new account": 30,
+    "similar_past_fraud":            15,
 }
 
 VERDICT_THRESHOLDS = [

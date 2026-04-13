@@ -1,9 +1,36 @@
+"use client"
+
+import { useState } from "react"
 import { AgentBadge } from "@/components/shared/AgentBadge"
 import { RiskScore } from "@/components/shared/RiskScore"
 import { StatusBadge } from "@/components/shared/StatusBadge"
+import { approveTransaction, rejectTransaction } from "@/lib/api"
 import type { AgentDecision } from "@/lib/types"
 
 export function AgentReasoning({ decision }: { decision: AgentDecision }) {
+  const [busy, setBusy] = useState<string | null>(null)
+  const [done, setDone] = useState<string | null>(null)
+
+  async function handleApprove() {
+    setBusy("approve")
+    try {
+      await approveTransaction(decision.transaction_id)
+      setDone("approve")
+    } finally {
+      setBusy(null)
+    }
+  }
+
+  async function handleReject() {
+    setBusy("reject")
+    try {
+      await rejectTransaction(decision.transaction_id)
+      setDone("reject")
+    } finally {
+      setBusy(null)
+    }
+  }
+
   return (
     <div className="flex flex-col gap-4">
       {/* DETECTOR */}
@@ -68,11 +95,19 @@ export function AgentReasoning({ decision }: { decision: AgentDecision }) {
 
       {/* Action Buttons */}
       <div className="flex gap-3 mt-2">
-        <button className="flex-1 py-2 rounded text-xs font-mono uppercase tracking-wider font-bold bg-green-500/20 text-[var(--accent-green)] border border-green-500/30 hover:bg-green-500/30 transition-colors">
-          Approve
+        <button
+          onClick={handleApprove}
+          disabled={busy !== null || done !== null}
+          className="flex-1 py-2 rounded text-xs font-mono uppercase tracking-wider font-bold bg-green-500/20 text-[var(--accent-green)] border border-green-500/30 hover:bg-green-500/30 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {busy === "approve" ? "Approving..." : done === "approve" ? "✓ Approved" : "Approve"}
         </button>
-        <button className="flex-1 py-2 rounded text-xs font-mono uppercase tracking-wider font-bold bg-red-500/20 text-[var(--accent-red)] border border-red-500/30 hover:bg-red-500/30 transition-colors">
-          Reject
+        <button
+          onClick={handleReject}
+          disabled={busy !== null || done !== null}
+          className="flex-1 py-2 rounded text-xs font-mono uppercase tracking-wider font-bold bg-red-500/20 text-[var(--accent-red)] border border-red-500/30 hover:bg-red-500/30 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {busy === "reject" ? "Rejecting..." : done === "reject" ? "✓ Rejected" : "Reject"}
         </button>
         <button className="flex-1 py-2 rounded text-xs font-mono uppercase tracking-wider font-bold bg-amber-500/20 text-[var(--accent-amber)] border border-amber-500/30 hover:bg-amber-500/30 transition-colors">
           Escalate

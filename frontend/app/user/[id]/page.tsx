@@ -1,7 +1,6 @@
 import { getUser } from "@/lib/api"
 import { Sidebar } from "@/components/layout/Sidebar"
 import { TopBar } from "@/components/layout/TopBar"
-import { TransactionTable } from "@/components/dashboard/TransactionTable"
 
 export const dynamic = "force-dynamic"
 
@@ -85,12 +84,10 @@ export default async function UserProfilePage({
             <div className="grid grid-cols-3 gap-6">
               <BehaviorField label="Usual Hours" value={user.usual_hours} />
               <BehaviorField label="Primary Location" value={user.usual_location} />
-              <BehaviorField label="Spend Pattern" value={user.spend_pattern} />
+              <BehaviorField label="Risk Profile" value={user.risk_profile} />
             </div>
           </div>
 
-          {/* Transaction history */}
-          <TransactionTable transactions={user.transactions} />
         </main>
       </div>
     </div>

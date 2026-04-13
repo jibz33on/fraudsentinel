@@ -1,7 +1,7 @@
 import Link from "next/link"
 import { RiskScore } from "@/components/shared/RiskScore"
 import { StatusBadge } from "@/components/shared/StatusBadge"
-import type { Transaction } from "@/lib/types"
+import type { TransactionDetail } from "@/lib/types"
 
 function Initials({ name }: { name: string }) {
   const parts = name.trim().split(" ")
@@ -26,7 +26,7 @@ function timeAgo(iso: string): string {
   return `${Math.floor(minutes / 60)}h ago`
 }
 
-export function TransactionTable({ transactions }: { transactions: Transaction[] }) {
+export function TransactionTable({ transactions }: { transactions: TransactionDetail[] }) {
   return (
     <div
       className="rounded-lg border overflow-hidden"
@@ -47,49 +47,55 @@ export function TransactionTable({ transactions }: { transactions: Transaction[]
           </tr>
         </thead>
         <tbody>
-          {transactions.map((tx) => (
-            <tr
-              key={tx.id}
-              className="border-b border-[var(--border)] hover:bg-white/[0.03] transition-colors"
-            >
-              <td className="px-5 py-3">
-                <div className="flex items-center gap-3">
-                  <Initials name={tx.user_name} />
-                  <div>
-                    <div className="text-white text-xs font-medium">{tx.user_name}</div>
-                    <div className="text-[var(--text-secondary)] text-[10px] font-mono">
-                      {tx.merchant}
+          {transactions.map((tx) => {
+            const name = tx.transaction.user_name
+            const riskScore = tx.decision?.detector?.risk_score ?? 0
+            const verdict = (tx.decision?.decision?.verdict ?? tx.transaction.status) as "APPROVED" | "REVIEW" | "REJECTED"
+            const time = tx.transaction.timestamp ?? tx.transaction.created_at ?? ""
+            return (
+              <tr
+                key={tx.transaction.id}
+                className="border-b border-[var(--border)] hover:bg-white/[0.03] transition-colors"
+              >
+                <td className="px-5 py-3">
+                  <div className="flex items-center gap-3">
+                    <Initials name={name} />
+                    <div>
+                      <div className="text-white text-xs font-medium">{name}</div>
+                      <div className="text-[var(--text-secondary)] text-[10px] font-mono">
+                        {tx.transaction.merchant}
+                      </div>
                     </div>
                   </div>
-                </div>
-              </td>
-              <td className="px-5 py-3 font-mono font-bold text-white">
-                {tx.currency} {tx.amount.toLocaleString()}
-              </td>
-              <td className="px-5 py-3">
-                <div className="text-xs text-[var(--text-secondary)]">
-                  📍 {tx.location}
-                </div>
-                <div className="text-[10px] font-mono text-[var(--text-secondary)]">
-                  {timeAgo(tx.timestamp)}
-                </div>
-              </td>
-              <td className="px-5 py-3">
-                <RiskScore score={tx.risk_score} />
-              </td>
-              <td className="px-5 py-3">
-                <StatusBadge status={tx.status} />
-              </td>
-              <td className="px-5 py-3">
-                <Link
-                  href={`/transaction/${tx.id}`}
-                  className="text-[10px] font-mono uppercase tracking-wider px-3 py-1 rounded border border-[var(--border)] text-[var(--text-secondary)] hover:text-white hover:border-white/30 transition-colors"
-                >
-                  VIEW
-                </Link>
-              </td>
-            </tr>
-          ))}
+                </td>
+                <td className="px-5 py-3 font-mono font-bold text-white">
+                  {tx.transaction.currency} {tx.transaction.amount.toLocaleString()}
+                </td>
+                <td className="px-5 py-3">
+                  <div className="text-xs text-[var(--text-secondary)]">
+                    📍 {tx.transaction.location}
+                  </div>
+                  <div className="text-[10px] font-mono text-[var(--text-secondary)]">
+                    {timeAgo(time)}
+                  </div>
+                </td>
+                <td className="px-5 py-3">
+                  <RiskScore score={riskScore} />
+                </td>
+                <td className="px-5 py-3">
+                  <StatusBadge status={verdict} />
+                </td>
+                <td className="px-5 py-3">
+                  <Link
+                    href={`/transaction/${tx.transaction.id}`}
+                    className="text-[10px] font-mono uppercase tracking-wider px-3 py-1 rounded border border-[var(--border)] text-[var(--text-secondary)] hover:text-white hover:border-white/30 transition-colors"
+                  >
+                    VIEW
+                  </Link>
+                </td>
+              </tr>
+            )
+          })}
         </tbody>
       </table>
     </div>

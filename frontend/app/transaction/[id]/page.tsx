@@ -1,4 +1,4 @@
-import { getTransaction, getTransactions } from "@/lib/api"
+import { getTransaction, getUser } from "@/lib/api"
 import { Sidebar } from "@/components/layout/Sidebar"
 import { TopBar } from "@/components/layout/TopBar"
 import { TransactionCard } from "@/components/transaction/TransactionCard"
@@ -12,17 +12,14 @@ export default async function TransactionDetailPage({
   params: Promise<{ id: string }>
 }) {
   const { id } = await params
-  const [decision, transactions] = await Promise.all([
-    getTransaction(id),
-    getTransactions(),
-  ])
-
-  const tx = transactions.find((t) => t.id === id) ?? transactions[0]
+  const detail = await getTransaction(id)
+  const tx = detail.transaction
+  const user = await getUser(tx.user_id ?? "")
 
   const userBehavior = {
-    avgSpend: 200,
-    usualLocation: "Kochi, India",
-    accountAgeDays: 547,
+    avgSpend:       user.avg_spend,
+    usualLocation:  user.usual_location,
+    accountAgeDays: user.account_age_days,
   }
 
   return (
@@ -73,7 +70,7 @@ export default async function TransactionDetailPage({
 
           {/* Right column */}
           <div className="w-96 shrink-0">
-            <AgentReasoning decision={decision} />
+            {detail.decision && <AgentReasoning decision={detail.decision} />}
           </div>
         </main>
       </div>

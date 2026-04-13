@@ -11,6 +11,11 @@ def get_user(user_id: str, select: str = "*") -> dict | None:
     return rows[0] if rows else None
 
 
+def list_users(select: str = "*") -> list[dict]:
+    """Fetch all users."""
+    return client.get("users", {"select": select}) or []
+
+
 def get_user_basics(user_id: str) -> dict | None:
     """Fetch only the fields needed for behavioral profiling."""
     return get_user(user_id, select="avg_spend,account_age_days,risk_profile")

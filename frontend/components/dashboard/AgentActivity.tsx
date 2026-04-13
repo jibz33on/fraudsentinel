@@ -9,6 +9,13 @@ function timeAgo(iso: string): string {
   return `${Math.floor(minutes / 60)}h ago`
 }
 
+function verdictColor(message: string): string {
+  if (message.startsWith("APPROVED")) return "var(--accent-green)"
+  if (message.startsWith("REJECTED")) return "var(--accent-red)"
+  if (message.startsWith("REVIEW")) return "var(--accent-amber)"
+  return "var(--text-secondary)"
+}
+
 export function AgentActivity({ activities }: { activities: AgentActivityItem[] }) {
   return (
     <div
@@ -32,7 +39,10 @@ export function AgentActivity({ activities }: { activities: AgentActivityItem[] 
                   {timeAgo(item.timestamp)}
                 </span>
               </div>
-              <p className="text-xs text-[var(--text-secondary)] mt-1 leading-relaxed">
+              <p
+                className="text-xs mt-1 leading-relaxed font-mono"
+                style={{ color: verdictColor(item.message) }}
+              >
                 {item.message}
               </p>
             </div>

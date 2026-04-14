@@ -32,7 +32,10 @@ class DetectorAgent:
     def analyze(self, transaction: dict, user_profile: dict) -> dict:
         txn_id = transaction.get("id", "unknown")
 
-        #Layer 0 — pgvector memory search 
+        # Layer 1: rules
+        flags = check_rules(transaction, user_profile)
+
+        # Layer 0 — pgvector memory search
         try:
             from memory.memory import search_similar
             query = f"{transaction.get('merchant', '')} {transaction.get('location', '')}"
@@ -42,8 +45,6 @@ class DetectorAgent:
                 flags.append("similar_past_fraud: matched past rejected transaction")
         except Exception as e:
             logger.warning(f"Memory Search failed for {txn_id}: {e}")
-        # Layer 1: rules
-        flags = check_rules(transaction, user_profile)
 
         # Layer 2: scoring
         score = calculate_score(flags)

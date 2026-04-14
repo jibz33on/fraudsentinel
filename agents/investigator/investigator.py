@@ -78,7 +78,7 @@ def investigate(transaction: dict, profile: dict) -> dict:
 
     deviation_score = sum(signals.values())
 
-    if deviation_score > 50:
+    if deviation_score > 30:
         from tools.llm_router import call_llm
         avg_spend = profile.get("avg_spend") or profile.get("avg_amount") or 0
         usual_location = ", ".join(profile.get("known_countries", [])) or "unknown"
@@ -86,12 +86,26 @@ def investigate(transaction: dict, profile: dict) -> dict:
         hour = transaction.get("hour", 0)
         amount = transaction.get("amount", 0)
         location = transaction.get("country", "")
-        prompt = (
-            f"User normally spends ${avg_spend:.0f} in {usual_location} "
-            f"during hours {usual_hours}. Today spent ${amount:.0f} in "
-            f"{location} at hour {hour}. Deviation signals: {', '.join(notes)}. "
-            f"How suspicious is this? One sentence explanation."
-        )
+        prompt = f"""You are a fraud analyst reviewing behavioural deviation signals for a transaction.
+
+User's normal behaviour:
+- Average spend: ${avg_spend:.0f}
+- Usual countries: {usual_location}
+- Typical transaction hours: {usual_hours}
+
+This transaction:
+- Amount: ${amount:.0f}
+- Country: {location}
+- Hour: {hour}:00
+
+Deviation signals detected: {', '.join(notes)}
+Deviation score: {deviation_score}/100
+
+Respond in exactly this format, no markdown, no bullet symbols:
+
+PATTERN: [one sentence describing the user's normal behaviour]
+DEVIATION: [one sentence on exactly how this transaction differs from that pattern]
+RISK: [one sentence on why this deviation is or isn't suspicious]"""
         try:
             summary = call_llm(prompt)
         except Exception:

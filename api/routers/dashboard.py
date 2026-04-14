@@ -205,6 +205,8 @@ def get_activity():
 
             try:
                 txn  = get_transaction(txn_id) or {}
+                if not txn:
+                    continue
                 user = get_user(txn.get("user_id")) if txn.get("user_id") else {}
             except Exception:
                 continue

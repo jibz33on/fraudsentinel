@@ -20,10 +20,12 @@ def decide(detector: dict, investigator: dict) -> dict:
         verdict = "APPROVED"
 
     # Step 3 — Confidence
-    if combined >= 80 or combined <= 20:
-        confidence = 90
-    elif combined >= 60 or combined <= 40:
-        confidence = 75
+    if combined >= 85 or combined <= 15:
+        confidence = 95
+    elif combined >= 70 or combined <= 30:
+        confidence = 85
+    elif combined >= 50:
+        confidence = 70
     else:
         confidence = 60
 
@@ -33,13 +35,22 @@ def decide(detector: dict, investigator: dict) -> dict:
     flags = ", ".join(detector.get("detector_flags", []))
     investigator_summary = investigator.get("investigator_summary", "")
 
-    prompt = (
-        f"Fraud detection decision:\n"
-        f"Detector score: {detector_score}/100, flags: {flags}\n"
-        f"Investigator deviation: {investigator_deviation}/100, {investigator_summary}\n"
-        f"Combined score: {combined:.0f}/100, Verdict: {verdict}\n\n"
-        f"Write a 2 sentence explanation of this decision."
-    )
+    prompt = f"""You are a senior fraud analyst. Write a structured decision report.
+
+Transaction risk data:
+- Detector score: {detector_score}/100
+- Triggered flags: {flags}
+- Behavioural deviation: {investigator_deviation}/100
+- Behavioural analysis: {investigator_summary}
+- Combined fraud score: {combined:.0f}/100
+- Verdict: {verdict}
+
+Respond in exactly this format, no markdown, no bullet symbols:
+
+DECISION: [one sentence verdict summary]
+SIGNALS: [one sentence listing the key flags that drove this]
+BEHAVIOUR: [one sentence on what the behavioural analysis shows]
+ACTION: [one sentence on what the analyst should do next]"""
 
     reason = call_llm(prompt)
 

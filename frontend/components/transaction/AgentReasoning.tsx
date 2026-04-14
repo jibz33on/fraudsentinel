@@ -7,6 +7,69 @@ import { StatusBadge } from "@/components/shared/StatusBadge"
 import { approveTransaction, rejectTransaction } from "@/lib/api"
 import type { AgentDecision } from "@/lib/types"
 
+function DetectorFlags({ flags }: { flags: string[] }) {
+  if (!flags || flags.length === 0) return <p className="text-sm text-gray-500">No flags triggered</p>
+
+  const getColor = (flag: string) => {
+    const f = flag.toLowerCase()
+    if (f.includes("velocity") || f.includes("fraud"))   return "bg-red-900/50 text-red-300 border border-red-700"
+    if (f.includes("amount") || f.includes("high"))      return "bg-orange-900/50 text-orange-300 border border-orange-700"
+    if (f.includes("location") || f.includes("foreign")) return "bg-yellow-900/50 text-yellow-300 border border-yellow-700"
+    if (f.includes("hour") || f.includes("time"))        return "bg-blue-900/50 text-blue-300 border border-blue-700"
+    if (f.includes("new account"))                       return "bg-purple-900/50 text-purple-300 border border-purple-700"
+    return "bg-gray-800 text-gray-300 border border-gray-600"
+  }
+
+  return (
+    <div className="flex flex-col gap-2">
+      {flags.map((flag, i) => (
+        <span key={i} className={`text-xs px-2 py-1 rounded ${getColor(flag)}`}>
+          ⚑ {flag}
+        </span>
+      ))}
+    </div>
+  )
+}
+
+function StructuredReason({ reason }: { reason: string }) {
+  const labels = ["DECISION", "SIGNALS", "BEHAVIOUR", "ACTION", "PATTERN", "DEVIATION", "RISK"]
+
+  const labelColors: Record<string, string> = {
+    DECISION:  "text-red-400",
+    SIGNALS:   "text-orange-400",
+    BEHAVIOUR: "text-yellow-400",
+    ACTION:    "text-blue-400",
+    PATTERN:   "text-purple-400",
+    DEVIATION: "text-orange-400",
+    RISK:      "text-red-400",
+  }
+
+  const parts = reason.split(/\n+/).map(line => line.trim()).filter(Boolean)
+
+  const sections: { label: string; text: string }[] = []
+  for (const part of parts) {
+    const match = labels.find(l => part.startsWith(l + ":"))
+    if (match) {
+      sections.push({ label: match, text: part.slice(match.length + 1).trim() })
+    }
+  }
+
+  if (sections.length === 0) return <p className="text-sm text-gray-300">{reason}</p>
+
+  return (
+    <div className="space-y-3">
+      {sections.map(({ label, text }) => (
+        <div key={label}>
+          <span className={`text-xs font-bold ${labelColors[label] ?? "text-gray-400"} mr-2`}>
+            {label}
+          </span>
+          <span className="text-sm text-gray-300">{text}</span>
+        </div>
+      ))}
+    </div>
+  )
+}
+
 export function AgentReasoning({ decision }: { decision: AgentDecision }) {
   const [busy, setBusy] = useState<string | null>(null)
   const [done, setDone] = useState<string | null>(null)
@@ -43,19 +106,9 @@ export function AgentReasoning({ decision }: { decision: AgentDecision }) {
           <AgentBadge agent="DETECTOR" />
         </div>
         <RiskScore score={decision.detector.risk_score} />
-        <ul className="mt-3 flex flex-col gap-1">
-          {decision.detector.flags.map((flag, i) => (
-            <li key={i} className="text-xs text-[var(--text-secondary)] flex gap-2">
-              <span className="text-[var(--accent-red)] shrink-0">▸</span>
-              {flag}
-            </li>
-          ))}
-        </ul>
-        {decision.detector.flags.length === 0 && (
-          <p className="text-xs text-[var(--text-secondary)] mt-2 italic">
-            No rule thresholds triggered — transaction within normal parameters
-          </p>
-        )}
+        <div className="mt-3">
+          <DetectorFlags flags={decision.detector.flags ?? []} />
+        </div>
       </div>
 
       {/* INVESTIGATOR */}
@@ -75,9 +128,7 @@ export function AgentReasoning({ decision }: { decision: AgentDecision }) {
             </span>
           </span>
         </div>
-        <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
-          {decision.investigator.summary}
-        </p>
+        <StructuredReason reason={decision.investigator.summary ?? ""} />
       </div>
 
       {/* DECISION */}
@@ -100,9 +151,7 @@ export function AgentReasoning({ decision }: { decision: AgentDecision }) {
             {decision.decision.confidence}%
           </span>
         </div>
-        <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
-          {decision.decision.reason}
-        </p>
+        <StructuredReason reason={decision.decision.reason ?? ""} />
       </div>
 
       {/* Action Buttons */}

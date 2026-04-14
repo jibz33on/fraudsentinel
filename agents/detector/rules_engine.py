@@ -18,10 +18,10 @@ def check_rules(transaction: dict, user_profile: dict) -> list[str]:
     avg_spend = float(user_profile.get("avg_spend", 0))
     location = transaction.get("location", "")
     merchant = transaction.get("merchant", "")
-    timestamp = transaction.get("timestamp", "")
+    timestamp = transaction.get("created_at", "")
     account_age_days = int(user_profile.get("account_age_days", 0))
     usual_location = user_profile.get("usual_location", "")
-    recent_transactions = int(user_profile.get("recent_transactions", 0))
+    recent_transactions = int(user_profile.get("transaction_count", 0))
 
     # 1. AMOUNT ANOMALY — more than 3x user avg_spend
     if avg_spend > 0 and amount > 3 * avg_spend:

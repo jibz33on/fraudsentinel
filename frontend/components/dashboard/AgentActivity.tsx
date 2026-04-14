@@ -2,17 +2,18 @@ import { AgentBadge } from "@/components/shared/AgentBadge"
 import type { AgentActivityItem } from "@/lib/types"
 
 function timeAgo(iso: string): string {
-  const seconds = Math.floor((Date.now() - new Date(iso).getTime()) / 1000)
+  const utc = iso.endsWith("Z") ? iso : iso + "Z"
+  const seconds = Math.floor((Date.now() - new Date(utc).getTime()) / 1000)
   if (seconds < 60) return `${seconds}s ago`
   const minutes = Math.floor(seconds / 60)
   if (minutes < 60) return `${minutes}m ago`
   return `${Math.floor(minutes / 60)}h ago`
 }
 
-function verdictColor(message: string): string {
-  if (message.startsWith("APPROVED")) return "var(--accent-green)"
-  if (message.startsWith("REJECTED")) return "var(--accent-red)"
-  if (message.startsWith("REVIEW")) return "var(--accent-amber)"
+function verdictColor(verdict: string): string {
+  if (verdict === "APPROVED") return "var(--accent-green)"
+  if (verdict === "REJECTED") return "var(--accent-red)"
+  if (verdict === "REVIEW")   return "var(--accent-amber)"
   return "var(--text-secondary)"
 }
 
@@ -29,22 +30,42 @@ export function AgentActivity({ activities }: { activities: AgentActivityItem[] 
           Live
         </span>
       </div>
+
       <div className="flex flex-col overflow-y-auto flex-1">
         {activities.map((item, i) => (
           <div key={item.id}>
             <div className="px-4 py-3">
-              <div className="flex items-center justify-between mb-1">
+
+              {/* Top row: badge + timestamp */}
+              <div className="flex items-center justify-between mb-1.5">
                 <AgentBadge agent={item.agent} />
                 <span className="text-[10px] font-mono text-[var(--text-secondary)]">
                   {timeAgo(item.timestamp)}
                 </span>
               </div>
-              <p
-                className="text-xs mt-1 leading-relaxed font-mono"
-                style={{ color: verdictColor(item.message) }}
-              >
-                {item.message}
+
+              {/* User + merchant */}
+              <p className="text-xs text-[var(--text-secondary)] mb-1">
+                {item.user_name}
+                <span className="mx-1 opacity-40">·</span>
+                {item.merchant}
               </p>
+
+              {/* Verdict + confidence */}
+              <div className="flex items-center gap-2">
+                <span
+                  className="text-xs font-mono font-semibold"
+                  style={{ color: verdictColor(item.verdict) }}
+                >
+                  {item.verdict}
+                </span>
+                {item.confidence != null && (
+                  <span className="text-[10px] font-mono text-[var(--text-secondary)]">
+                    {item.confidence}% confidence
+                  </span>
+                )}
+              </div>
+
             </div>
             {i < activities.length - 1 && (
               <div className="border-b border-[var(--border)]" />

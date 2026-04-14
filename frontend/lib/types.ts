@@ -54,8 +54,11 @@ export interface AgentStatus {
 export interface AgentActivityItem {
   id: string
   agent: "DETECTOR" | "INVESTIGATOR" | "DECISION"
-  message: string
   timestamp: string
+  verdict: string
+  confidence: number | null
+  merchant: string
+  user_name: string
 }
 
 export interface AnalyticsData {

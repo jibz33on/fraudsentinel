@@ -30,7 +30,7 @@ export default async function TransactionDetailPage({
         <main className="flex flex-1 overflow-y-auto p-6 gap-6">
           {/* Left column */}
           <div className="flex flex-col gap-4 flex-1">
-            <TransactionCard tx={tx} />
+            <TransactionCard tx={tx} userBehavior={userBehavior} />
             {/* User Behavior Card */}
             <div
               className="rounded-lg border p-5"

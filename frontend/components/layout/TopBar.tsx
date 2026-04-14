@@ -26,8 +26,8 @@ export function TopBar({ title }: { title: string }) {
 
       <div className="flex items-center gap-4">
         <div className="text-xs font-mono text-[var(--text-secondary)]">
-          SYNC{" "}
           <span className="text-white">{time}</span>
+          <span className="ml-1 text-[var(--text-secondary)]">IST</span>
         </div>
 
         <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-green-500/10 border border-green-500/20">

@@ -39,6 +39,7 @@ export function AgentReasoning({ decision }: { decision: AgentDecision }) {
         style={{ background: "var(--surface)", borderColor: "var(--border)" }}
       >
         <div className="flex items-center gap-2 mb-3">
+          <span className="text-xs font-mono text-[var(--text-secondary)]">①</span>
           <AgentBadge agent="DETECTOR" />
         </div>
         <RiskScore score={decision.detector.risk_score} />
@@ -50,6 +51,11 @@ export function AgentReasoning({ decision }: { decision: AgentDecision }) {
             </li>
           ))}
         </ul>
+        {decision.detector.flags.length === 0 && (
+          <p className="text-xs text-[var(--text-secondary)] mt-2 italic">
+            No rule thresholds triggered — transaction within normal parameters
+          </p>
+        )}
       </div>
 
       {/* INVESTIGATOR */}
@@ -58,7 +64,10 @@ export function AgentReasoning({ decision }: { decision: AgentDecision }) {
         style={{ background: "var(--surface)", borderColor: "var(--border)" }}
       >
         <div className="flex items-center justify-between mb-3">
-          <AgentBadge agent="INVESTIGATOR" />
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-mono text-[var(--text-secondary)]">②</span>
+            <AgentBadge agent="INVESTIGATOR" />
+          </div>
           <span className="text-xs font-mono text-[var(--text-secondary)]">
             deviation:{" "}
             <span className="text-[var(--accent-amber)]">
@@ -77,7 +86,10 @@ export function AgentReasoning({ decision }: { decision: AgentDecision }) {
         style={{ background: "var(--surface)", borderColor: "var(--border)" }}
       >
         <div className="flex items-center justify-between mb-3">
-          <AgentBadge agent="DECISION" />
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-mono text-[var(--text-secondary)]">③</span>
+            <AgentBadge agent="DECISION" />
+          </div>
           <StatusBadge status={decision.decision.verdict} />
         </div>
         <div className="flex items-center gap-2 mb-2">

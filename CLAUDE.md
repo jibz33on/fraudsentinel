@@ -164,6 +164,35 @@ POST /dashboard/transaction/{id}/reject         ← manual reject
 ⬜ UI polish pass — /transactions, /users, /analytics, /settings
 ⬜ Deploy backend → Railway
 ⬜ Deploy frontend → Cloudflare Pages
+⬜ Manual override feedback loop — when analyst approves/rejects a transaction,
+   feed the decision back into vector memory so agents learn from human decisions
+⬜ User risk profile update — manual overrides should update the user's risk_profile
+   in the users table (e.g. repeated manual rejects → escalate user risk level)
+⬜ Override history tracking — store who approved/rejected and when, separate from
+   agent decisions
+⬜ ESCALATE button — wire to a backend endpoint, create escalated_reviews table
+⬜ AGENT TUNING — Deep review and enhancement of all 3 agents:
+
+   DETECTOR:
+   - Lower amount threshold from 3x to 2x average spend
+   - Add location change flag (new country = automatic risk points)
+   - Add time-of-day flag (unusual hours = risk points)
+   - Review all rule thresholds in agents/detector/rules_engine.py
+   - Re-enable LLM for ambiguous scores with better prompt
+
+   INVESTIGATOR:
+   - Review deviation scoring formula in agents/investigator/investigator.py
+   - Improve LLM prompt to give specific reasoning, not vague summaries
+   - Threshold to trigger LLM should be lower (currently >50, consider >30)
+
+   DECISION:
+   - Improve LLM prompt to reference specific anomalies by name
+   - Confidence scoring should reflect investigator deviation more heavily
+   - Add explanation of WHY combined score led to this verdict
+
+   GENERAL:
+   - All LLM prompts need a full review pass for clarity and specificity
+   - Test with golden dataset after every threshold change
 
 ## Seed Users (Supabase)
 6 users seeded: Jimmy K, Mark T, Sarah M, Priya S, Alex R, TechCorp Ltd

@@ -30,7 +30,10 @@ def user_page():
 @router.get("/stats")
 def get_stats():
     try:
-        rows = list_decisions(select="decision_verdict")
+        rows = list_decisions(
+            select="decision_verdict",
+            filters={"status": "eq.complete"},
+        )
 
         total = len(rows)
         approved = sum(1 for r in rows if r.get("decision_verdict") == "APPROVED")
@@ -61,8 +64,13 @@ def get_transactions():
 
         result = []
         for row in rows:
-            txn  = get_transaction(row["transaction_id"]) or {}
-            user = get_user(txn["user_id"], select="name") if txn.get("user_id") else {}
+            try:
+                txn  = get_transaction(row["transaction_id"]) or {}
+                if not txn:
+                    continue
+                user = get_user(txn.get("user_id"), select="name") if txn.get("user_id") else {}
+            except Exception:
+                continue
             tid  = row.get("transaction_id")
 
             result.append({
@@ -179,27 +187,39 @@ def get_user_detail(user_id: str):
 @router.get("/activity")
 def get_activity():
     try:
-        rows = list_decisions(
+        decisions = list_decisions(
             select="transaction_id,decision_verdict,decision_confidence,created_at",
             limit=10,
         )
-        results = [
-            {
-                "id":        row["transaction_id"] + "-" + row["created_at"],
-                "agent":     "DECISION",
-                "timestamp": row["created_at"],
-                "message":   f"{row['decision_verdict']} — confidence {row['decision_confidence']}%",
-            }
-            for row in rows
-        ]
 
+        from db.transactions import get_transaction
+        from db.users import get_user
+
+        results = []
         seen = set()
-        deduped = []
-        for row in results:
-            if row["id"] not in seen:
-                seen.add(row["id"])
-                deduped.append(row)
-        return deduped
+        for row in decisions:
+            txn_id = row["transaction_id"]
+            if txn_id in seen:
+                continue
+            seen.add(txn_id)
+
+            try:
+                txn  = get_transaction(txn_id) or {}
+                user = get_user(txn.get("user_id")) if txn.get("user_id") else {}
+            except Exception:
+                continue
+
+            results.append({
+                "id":         txn_id,
+                "agent":      "DECISION",
+                "timestamp":  row["created_at"],
+                "verdict":    row.get("decision_verdict") or "UNKNOWN",
+                "confidence": row.get("decision_confidence"),
+                "merchant":   txn.get("merchant") or "Unknown",
+                "user_name":  user.get("name") if user else "Unknown",
+            })
+        results = [r for r in results if r["verdict"] not in ("UNKNOWN", None)]
+        return results
     except Exception as e:
         print(f"[activity] error: {e}")
         return []

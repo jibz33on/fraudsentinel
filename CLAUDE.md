@@ -152,11 +152,16 @@ POST /dashboard/transaction/{id}/reject         ← manual reject
 ✅ Real user profile now passed to DETECTOR in pipeline.py
 ✅ APPROVE/REJECT endpoints: POST /dashboard/transaction/{id}/approve and /reject
 ✅ Backend fully complete
+✅ All frontend pages built (/transactions, /users, /analytics, /settings)
+✅ /dashboard/users and /dashboard/analytics backend endpoints added
+✅ TransactionTable fixed to use TransactionDetail shape
+✅ Approve/Reject/Escalate buttons wired with loading states
+✅ Live polling on dashboard (5s) and analytics (15s)
+✅ Settings page with test transaction form (POST /analyze)
+✅ All 8 routes compile clean, no TS errors, committed and pushed
 
 ## Remaining TODOs
-⬜ Frontend: APPROVE/REJECT buttons wired to new endpoints
-⬜ Frontend: Live polling (auto-refresh)
-⬜ Analytics page
+⬜ UI polish pass — /transactions, /users, /analytics, /settings
 ⬜ Deploy backend → Railway
 ⬜ Deploy frontend → Cloudflare Pages
 
@@ -167,6 +172,7 @@ Note: transaction_count on users table is seeded high but actual
 transactions table rows are sparse — seed_data.py needed
 
 ## Next Session Starts With
-1. Frontend — wire APPROVE/REJECT buttons to new endpoints
-2. Frontend — live polling
-3. Deploy → Railway + Cloudflare Pages
+1. Screenshot review of /transactions, /users, /analytics, /settings
+2. UI polish pass on each page
+3. Deploy backend → Railway
+4. Deploy frontend → Cloudflare Pages

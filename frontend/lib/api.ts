@@ -70,6 +70,10 @@ export async function submitAnalyze(payload: {
   hour: number
   merchant: string
   method: string
+  currency?: string
+  ip_address?: string
+  ip_country?: string
+  device?: string
 }): Promise<{ transaction_id: string; verdict: string; confidence: number; reason: string }> {
   const res = await fetch(`${API_BASE}/analyze`, {
     method: "POST",

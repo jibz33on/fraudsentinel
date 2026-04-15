@@ -19,15 +19,15 @@ router = APIRouter()
 def analyze(request: TransactionRequest):
     try:
         supabase.table("transactions").insert({
-            "id": request.transaction_id,
-            "user_id": request.user_id,
-            "amount": request.amount,
-            "currency": request.currency if hasattr(request, 'currency') else "USD",
-            "merchant": request.merchant,
-            "location": request.country,
-            "ip_address": request.ip_address if hasattr(request, 'ip_address') else "",
-            "device": request.device if hasattr(request, 'device') else "",
-            "status": "complete",
+            "id":         request.transaction_id,
+            "user_id":    request.user_id,
+            "amount":     request.amount,
+            "currency":   request.currency,
+            "merchant":   request.merchant,
+            "location":   request.country,
+            "ip_address": request.ip_address,
+            "device":     request.device,
+            "status":     "complete",
             "created_at": datetime.utcnow().isoformat(),
         }).execute()
 

@@ -22,6 +22,9 @@ def check_rules(transaction: dict, user_profile: dict) -> list[str]:
     account_age_days = int(user_profile.get("account_age_days", 0))
     usual_location = user_profile.get("usual_location", "")
     recent_transactions = int(user_profile.get("transaction_count", 0))
+    ip_address = transaction.get("ip_address", "")
+    device = transaction.get("device", "")
+    currency = transaction.get("currency", "USD")
 
     # 1. AMOUNT ANOMALY — more than 3x user avg_spend
     if avg_spend > 0 and amount > 3 * avg_spend:
@@ -72,5 +75,24 @@ def check_rules(transaction: dict, user_profile: dict) -> list[str]:
     # 9. HIGH TRANSACTION FOR NEW ACCOUNT
     if account_age_days < 30 and amount > 500:
         flags.append(f"High transaction for new account: {amount}")
+
+    # 10. IP / LOCATION MISMATCH — IP country doesn't match transaction country
+    ip_country = transaction.get("ip_country", "")
+    country = transaction.get("country", location)
+    if ip_country and country and ip_country.lower() != country.lower():
+        flags.append(f"IP/location mismatch: IP country {ip_country} vs transaction country {country}")
+
+    # 11. NEW DEVICE
+    known_devices = user_profile.get("known_devices", [])
+    if device and known_devices and device not in known_devices:
+        flags.append(f"New device: {device}")
+
+    # 12. CURRENCY MISMATCH — non-USD currency for domestic user
+    if currency and currency.upper() != "USD":
+        is_domestic_user = any(city in usual_location.lower() for city in DOMESTIC_INDICATORS)
+        if is_domestic_user and currency.upper() not in ("INR", "USD"):
+            flags.append(f"Currency mismatch: {currency} for domestic user")
+        elif not is_domestic_user and currency.upper() not in ("USD", "EUR", "GBP", "INR", "AUD", "CAD"):
+            flags.append(f"Unusual currency: {currency}")
 
     return flags

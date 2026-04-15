@@ -26,12 +26,37 @@ LOCATIONS = [
     "New York, US", "Tokyo, Japan",
 ]
 
-METHODS = ["card", "upi", "crypto", "bank_transfer"]
+METHODS  = ["card", "upi", "crypto", "bank_transfer"]
+DEVICES  = ["iPhone", "Android", "Chrome/Windows", "Chrome/Mac", "Unknown"]
+CURRENCIES = ["USD", "USD", "USD", "USD", "EUR", "GBP", "INR", "BTC"]  # weighted toward USD
+
+# IP prefixes loosely associated with regions
+LOCATION_IPS = {
+    "Kochi, India":    ["103.21.", "49.36.", "122.160."],
+    "Mumbai, India":   ["103.21.", "49.37.", "117.196."],
+    "London, UK":      ["5.148.", "31.6.", "81.134."],
+    "Singapore":       ["103.252.", "180.214.", "202.79."],
+    "Lagos, Nigeria":  ["197.210.", "41.184.", "105.112."],
+    "Dubai, UAE":      ["5.36.", "185.70.", "94.200."],
+    "New York, US":    ["4.28.", "23.92.", "67.183."],
+    "Tokyo, Japan":    ["113.43.", "126.47.", "210.153."],
+}
+
+
+def generate_ip(location: str, mismatch: bool) -> str:
+    if mismatch:
+        # Pick a prefix from a different location
+        other_locations = [l for l in LOCATION_IPS if l != location]
+        prefix = random.choice(LOCATION_IPS.get(random.choice(other_locations), ["10.0."]))
+    else:
+        prefix = random.choice(LOCATION_IPS.get(location, ["10.0."]))
+    return prefix + f"{random.randint(1, 254)}.{random.randint(1, 254)}"
 
 
 def generate_transaction() -> dict:
     user = random.choice(USERS)
     txn_id = f"txn-{random.randint(100000, 999999)}"
+    location = random.choice(LOCATIONS)
 
     roll = random.random()
     if roll < 0.80:
@@ -46,14 +71,33 @@ def generate_transaction() -> dict:
     else:
         hour = random.randint(0, 7)
 
+    # 15% chance of IP mismatch
+    ip_mismatch = random.random() < 0.15
+    ip_address = generate_ip(location, ip_mismatch)
+    if ip_mismatch:
+        other_locations = [l for l in LOCATIONS if l != location]
+        ip_country = random.choice(other_locations)
+    else:
+        ip_country = location
+
+    # 10% chance of unknown/new device
+    device = "Unknown" if random.random() < 0.10 else random.choice(DEVICES[:-1])
+
+    # 10% chance of non-USD currency
+    currency = random.choice(CURRENCIES)
+
     return {
         "transaction_id": txn_id,
         "user_id":        user["id"],
         "amount":         amount,
-        "country":        random.choice(LOCATIONS),
+        "country":        location,
         "hour":           hour,
         "merchant":       random.choice(MERCHANTS),
         "method":         random.choice(METHODS),
+        "currency":       currency,
+        "ip_address":     ip_address,
+        "ip_country":     ip_country,
+        "device":         device,
         "_user_name":     user["name"],  # local only, not sent to API
     }
 

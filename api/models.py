@@ -9,6 +9,10 @@ class TransactionRequest(BaseModel):
     hour: int
     merchant: str
     method: str
+    currency: str = "USD"
+    ip_address: str = ""
+    ip_country: str = ""
+    device: str = "Unknown"
 
 
 class AnalyzeResponse(BaseModel):

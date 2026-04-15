@@ -25,12 +25,16 @@ const SEED_USERS = [
 const PAYMENT_METHODS = ["card", "bank_transfer", "crypto", "wallet"]
 
 interface FormState {
-  user_id: string
-  amount: string
-  country: string
-  hour: string
-  merchant: string
-  method: string
+  user_id:    string
+  amount:     string
+  country:    string
+  hour:       string
+  merchant:   string
+  method:     string
+  currency:   string
+  ip_address: string
+  ip_country: string
+  device:     string
 }
 
 interface AnalyzeResult {
@@ -69,12 +73,16 @@ const verdictColors: Record<string, string> = {
 
 export default function SettingsPage() {
   const [form, setForm] = useState<FormState>({
-    user_id: SEED_USERS[0].id,
-    amount:  "250",
-    country: "US",
-    hour:    "14",
-    merchant: "Amazon",
-    method:  "card",
+    user_id:    SEED_USERS[0].id,
+    amount:     "250",
+    country:    "US",
+    hour:       "14",
+    merchant:   "Amazon",
+    method:     "card",
+    currency:   "USD",
+    ip_address: "192.168.1.1",
+    ip_country: "US",
+    device:     "Chrome/Mac",
   })
   const [submitting, setSubmitting] = useState(false)
   const [result, setResult]         = useState<AnalyzeResult | null>(null)
@@ -98,6 +106,10 @@ export default function SettingsPage() {
         hour:           parseInt(form.hour, 10) || 0,
         merchant:       form.merchant,
         method:         form.method,
+        currency:       form.currency,
+        ip_address:     form.ip_address,
+        ip_country:     form.ip_country,
+        device:         form.device,
       })
       setResult(res)
     } catch (e) {
@@ -232,6 +244,58 @@ export default function SettingsPage() {
                       <option key={m} value={m}>{m}</option>
                     ))}
                   </select>
+                </div>
+
+                {/* Currency */}
+                <div className="flex flex-col gap-1">
+                  <label className="text-[10px] font-mono uppercase text-[var(--text-secondary)]">Currency</label>
+                  <input
+                    type="text"
+                    value={form.currency}
+                    onChange={(e) => set("currency", e.target.value)}
+                    className={inputCls}
+                    style={inputStyle}
+                    placeholder="e.g. USD"
+                  />
+                </div>
+
+                {/* IP Address */}
+                <div className="flex flex-col gap-1">
+                  <label className="text-[10px] font-mono uppercase text-[var(--text-secondary)]">IP Address</label>
+                  <input
+                    type="text"
+                    value={form.ip_address}
+                    onChange={(e) => set("ip_address", e.target.value)}
+                    className={inputCls}
+                    style={inputStyle}
+                    placeholder="e.g. 192.168.1.1"
+                  />
+                </div>
+
+                {/* IP Country */}
+                <div className="flex flex-col gap-1">
+                  <label className="text-[10px] font-mono uppercase text-[var(--text-secondary)]">IP Country</label>
+                  <input
+                    type="text"
+                    value={form.ip_country}
+                    onChange={(e) => set("ip_country", e.target.value)}
+                    className={inputCls}
+                    style={inputStyle}
+                    placeholder="e.g. US"
+                  />
+                </div>
+
+                {/* Device */}
+                <div className="flex flex-col gap-1">
+                  <label className="text-[10px] font-mono uppercase text-[var(--text-secondary)]">Device</label>
+                  <input
+                    type="text"
+                    value={form.device}
+                    onChange={(e) => set("device", e.target.value)}
+                    className={inputCls}
+                    style={inputStyle}
+                    placeholder="e.g. Chrome/Mac"
+                  />
                 </div>
               </div>
 

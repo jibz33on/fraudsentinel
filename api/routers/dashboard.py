@@ -4,6 +4,7 @@ from fastapi.responses import FileResponse, JSONResponse
 from db.decisions import get_decision, list_decisions, patch_decision
 from db.transactions import get_transaction
 from db.users import get_user, list_users
+from db.client import supabase
 
 router = APIRouter()
 
@@ -56,28 +57,29 @@ def get_stats():
 @router.get("/transactions")
 def get_transactions():
     try:
-        rows = list_decisions(
-            select="transaction_id,detector_score,detector_flags,decision_verdict,decision_confidence,created_at",
-            limit=50,
-            filters={"status": "eq.complete"},
-        )
+        response = supabase.table("agent_decisions") \
+            .select("*, transactions!inner(*, users!inner(*))") \
+            .eq("status", "complete") \
+            .order("created_at", desc=True) \
+            .limit(50) \
+            .execute()
 
+        seen = set()
         result = []
-        for row in rows:
-            try:
-                txn  = get_transaction(row["transaction_id"]) or {}
-                if not txn:
-                    continue
-                user = get_user(txn.get("user_id"), select="name") if txn.get("user_id") else {}
-            except Exception:
+        for row in response.data:
+            tid = row.get("transaction_id")
+            if tid in seen:
                 continue
-            tid  = row.get("transaction_id")
+            seen.add(tid)
+
+            txn  = row.get("transactions") or {}
+            user = txn.get("users") or {}
 
             result.append({
                 "transaction": {
                     "id":         tid,
                     "user_id":    txn.get("user_id", ""),
-                    "user_name":  user.get("name", "Unknown") if user else "Unknown",
+                    "user_name":  user.get("name", "Unknown"),
                     "amount":     txn.get("amount", 0),
                     "currency":   txn.get("currency", "USD"),
                     "merchant":   txn.get("merchant", ""),
@@ -96,27 +98,21 @@ def get_transactions():
                         "flags":      row.get("detector_flags") or [],
                     },
                     "investigator": {
-                        "summary":         "",
-                        "deviation_score": 0,
+                        "summary":         row.get("investigator_summary", ""),
+                        "deviation_score": row.get("investigator_deviation", 0),
                     },
                     "decision": {
                         "verdict":    row.get("decision_verdict", "APPROVED"),
                         "confidence": row.get("decision_confidence", 0),
-                        "reason":     "",
+                        "reason":     row.get("decision_reason", ""),
                     },
                 } if row.get("decision_verdict") else None,
             })
 
-        seen = set()
-        deduped = []
-        for item in result:
-            tid = item["transaction"]["id"]
-            if tid not in seen:
-                seen.add(tid)
-                deduped.append(item)
-        return deduped
+        return result
     except Exception as e:
-        return JSONResponse(status_code=500, content={"error": "Failed to fetch transactions", "detail": str(e)})
+        import traceback
+        raise HTTPException(status_code=500, detail=traceback.format_exc())
 
 
 @router.get("/transaction/{transaction_id}")
@@ -187,44 +183,35 @@ def get_user_detail(user_id: str):
 @router.get("/activity")
 def get_activity():
     try:
-        decisions = list_decisions(
-            select="transaction_id,decision_verdict,decision_confidence,created_at",
-            limit=10,
-        )
-
-        from db.transactions import get_transaction
-        from db.users import get_user
+        response = supabase.table("agent_decisions") \
+            .select("*, transactions!inner(*, users!inner(*))") \
+            .eq("status", "complete") \
+            .order("created_at", desc=True) \
+            .limit(10) \
+            .execute()
 
         results = []
-        seen = set()
-        for row in decisions:
-            txn_id = row["transaction_id"]
-            if txn_id in seen:
+        for row in response.data:
+            verdict = row.get("decision_verdict") or "UNKNOWN"
+            if verdict in ("UNKNOWN", None):
                 continue
-            seen.add(txn_id)
-
-            try:
-                txn  = get_transaction(txn_id) or {}
-                if not txn:
-                    continue
-                user = get_user(txn.get("user_id")) if txn.get("user_id") else {}
-            except Exception:
-                continue
+            txn  = row.get("transactions") or {}
+            user = txn.get("users") or {}
 
             results.append({
-                "id":         txn_id,
+                "id":         row["transaction_id"],
                 "agent":      "DECISION",
-                "timestamp":  row["created_at"],
-                "verdict":    row.get("decision_verdict") or "UNKNOWN",
+                "timestamp":  row.get("created_at", ""),
+                "verdict":    verdict,
                 "confidence": row.get("decision_confidence"),
                 "merchant":   txn.get("merchant") or "Unknown",
-                "user_name":  user.get("name") if user else "Unknown",
+                "user_name":  user.get("name") or "Unknown",
             })
-        results = [r for r in results if r["verdict"] not in ("UNKNOWN", None)]
+
         return results
     except Exception as e:
-        print(f"[activity] error: {e}")
-        return []
+        import traceback
+        raise HTTPException(status_code=500, detail=traceback.format_exc())
 
 
 @router.get("/analytics")

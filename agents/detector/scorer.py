@@ -11,16 +11,20 @@ Each weight is calibrated so that:
 """
 
 FLAG_WEIGHTS = {
-    "Amount":                        35,
-    "unfamiliar location":           25,
-    "unusual hour":                  15,
-    "High-risk merchant":            15,
-    "Velocity":                      80,
-    "New account":                   10,
-    "Foreign transaction":           20,
-    "High absolute amount":          10,
+    "Amount":                           35,
+    "unfamiliar location":              25,
+    "unusual hour":                     15,
+    "High-risk merchant":               15,
+    "Velocity":                         80,
+    "New account":                      10,
+    "Foreign transaction":              20,
+    "High absolute amount":             10,
     "High transaction for new account": 30,
-    "similar_past_fraud":            15,
+    "similar_past_fraud":               15,
+    "IP/location mismatch":             20,
+    "New device":                       15,
+    "Currency mismatch":                10,
+    "Unusual currency":                 10,
 }
 
 VERDICT_THRESHOLDS = [

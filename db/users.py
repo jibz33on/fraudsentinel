@@ -18,7 +18,7 @@ def list_users(select: str = "*") -> list[dict]:
 
 def get_user_basics(user_id: str) -> dict | None:
     """Fetch only the fields needed for behavioral profiling."""
-    return get_user(user_id, select="avg_spend,account_age_days,risk_profile")
+    return get_user(user_id, select="avg_spend,account_age_days,risk_profile,usual_location")
 
 
 def increment_transaction_count(user_id: str) -> None:

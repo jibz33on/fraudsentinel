@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 from db.users import get_user_basics
 from db.transactions import list_transactions
 
@@ -8,6 +8,7 @@ def get_user_profile(user_id: str) -> dict:
 
     avg_spend = user_row.get("avg_spend", 0.0)
     account_age_days = user_row.get("account_age_days", 0)
+    usual_location = user_row.get("usual_location", "")
 
     txns = list_transactions(user_id, limit=30)
 
@@ -16,10 +17,13 @@ def get_user_profile(user_id: str) -> dict:
             "avg_amount": avg_spend,
             "avg_spend": avg_spend,
             "account_age_days": account_age_days,
+            "usual_location": usual_location,
             "known_countries": [],
             "known_merchants": [],
+            "known_devices": [],
             "typical_hours": [],
             "transaction_count": 0,
+            "recent_transaction_count": 0,
         }
 
     amounts = [t["amount"] for t in txns if t.get("amount") is not None]
@@ -33,20 +37,32 @@ def get_user_profile(user_id: str) -> dict:
 
     known_merchants = list({t["merchant"] for t in txns if t.get("merchant")})
 
+    known_devices = list({t["device"] for t in txns if t.get("device")})
+
     typical_hours = list({
         datetime.fromisoformat(t["created_at"].replace("Z", "+00:00")).hour
         for t in txns
         if t.get("created_at")
     })
 
+    cutoff = datetime.now(timezone.utc) - timedelta(hours=24)
+    recent_transaction_count = sum(
+        1 for t in txns
+        if t.get("created_at") and
+        datetime.fromisoformat(t["created_at"].replace("Z", "+00:00")) > cutoff
+    )
+
     return {
         "avg_amount": avg_amount,
-        "avg_spend": avg_amount,
+        "avg_spend": avg_spend,
         "account_age_days": account_age_days,
+        "usual_location": usual_location,
         "known_countries": known_countries,
         "known_merchants": known_merchants,
+        "known_devices": known_devices,
         "typical_hours": typical_hours,
         "transaction_count": len(txns),
+        "recent_transaction_count": recent_transaction_count,
     }
 
 

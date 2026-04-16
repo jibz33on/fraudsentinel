@@ -10,6 +10,11 @@ class FraudState(TypedDict):
     hour: int
     merchant: str
     method: str
+    currency: str
+    ip_address: str
+    ip_country: str
+    device: str
+    created_at: str
 
     # DETECTOR output
     detector_score: int

@@ -15,7 +15,7 @@ def list_transactions(user_id: str, limit: int = 20) -> list:
     """Fetch recent transactions for a user, ordered by created_at desc."""
     return client.get("transactions", {
         "user_id": f"eq.{user_id}",
-        "select": "amount,location,created_at,merchant",
+        "select": "amount,location,created_at,merchant,device",
         "order": "created_at.desc",
         "limit": limit,
     })

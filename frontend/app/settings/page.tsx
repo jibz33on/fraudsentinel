@@ -14,12 +14,12 @@ const PIPELINE_STAGES = [
 ]
 
 const SEED_USERS = [
-  { id: "u1", label: "Jimmy K" },
-  { id: "u2", label: "Mark T" },
-  { id: "u3", label: "Sarah M" },
-  { id: "u4", label: "Priya S" },
-  { id: "u5", label: "Alex R" },
-  { id: "u6", label: "TechCorp Ltd" },
+  { id: "55472a7d-8980-4777-b98d-e8b65e65d33c", label: "Jimmy K" },
+  { id: "67f045c9-658d-4e62-8300-877be9a006d1", label: "Mark T" },
+  { id: "720b0db6-e4b4-4ca1-9989-5693728d871a", label: "Sarah M" },
+  { id: "d5dbff76-59df-45d8-b92d-bfa4cd3a7748", label: "Priya S" },
+  { id: "dce92994-825b-4264-8ece-67b4ca440cbe", label: "Alex R" },
+  { id: "5f3bfd92-46d1-46b5-b82d-4bacbc42928d", label: "TechCorp Ltd" },
 ]
 
 const PAYMENT_METHODS = ["card", "bank_transfer", "crypto", "wallet"]

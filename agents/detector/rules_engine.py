@@ -5,8 +5,6 @@ Input: transaction dict + user_profile dict
 Output: list of flag strings
 """
 
-from datetime import datetime
-
 HIGH_RISK_KEYWORDS = ["crypto", "casino", "gambling", "forex", "wire transfer"]
 
 DOMESTIC_INDICATORS = ["india", "kochi", "mumbai", "delhi", "bangalore", "chennai"]
@@ -16,12 +14,11 @@ def check_rules(transaction: dict, user_profile: dict) -> list[str]:
     flags = []
     amount = float(transaction.get("amount", 0))
     avg_spend = float(user_profile.get("avg_spend", 0))
-    location = transaction.get("location", "")
+    location = transaction.get("country", transaction.get("location", ""))
     merchant = transaction.get("merchant", "")
-    timestamp = transaction.get("created_at", "")
     account_age_days = int(user_profile.get("account_age_days", 0))
     usual_location = user_profile.get("usual_location", "")
-    recent_transactions = int(user_profile.get("transaction_count", 0))
+    recent_transactions = int(user_profile.get("recent_transaction_count", 0))
     ip_address = transaction.get("ip_address", "")
     device = transaction.get("device", "")
     currency = transaction.get("currency", "USD")
@@ -37,13 +34,13 @@ def check_rules(transaction: dict, user_profile: dict) -> list[str]:
             flags.append(f"Transaction in unfamiliar location: {location}")
 
     # 3. TIME ANOMALY — between midnight and 5am
-    if timestamp:
-        try:
-            dt = datetime.fromisoformat(str(timestamp))
-            if 0 <= dt.hour < 5:
-                flags.append(f"Transaction at unusual hour: {dt.strftime('%H:%M')}")
-        except (ValueError, TypeError):
-            pass
+    hour_val = transaction.get("hour", -1)
+    try:
+        hour_val = int(hour_val)
+    except (TypeError, ValueError):
+        hour_val = -1
+    if 0 <= hour_val < 5:
+        flags.append(f"Transaction at unusual hour: {hour_val:02d}:00")
 
     # 4. HIGH RISK MERCHANT
     merchant_lower = merchant.lower()
@@ -52,9 +49,9 @@ def check_rules(transaction: dict, user_profile: dict) -> list[str]:
             flags.append(f"High-risk merchant category: {merchant}")
             break
 
-    # 5. VELOCITY CHECK — recent_transactions field or repeated pattern
+    # 5. VELOCITY CHECK — 3+ transactions in the last 24 hours
     if recent_transactions >= 3:
-        flags.append("Velocity anomaly: multiple transactions")
+        flags.append(f"Velocity anomaly: {recent_transactions} transactions in 24h")
 
     # 6. NEW ACCOUNT
     if account_age_days < 30:

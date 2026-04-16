@@ -8,16 +8,18 @@ def decide(detector: dict, investigator: dict) -> dict:
     detector_score = detector["detector_score"]
     investigator_deviation = investigator["investigator_deviation"]
 
-    # Step 1 — Combined score
-    combined = (detector_score * 0.6) + (investigator_deviation * 0.4)
-
-    # Step 2 — Final verdict
-    if combined >= 70:
+    # Step 1 — Hard override: extreme detector score always REJECTs
+    if detector_score >= 90:
+        combined = float(detector_score)
         verdict = "REJECTED"
-    elif combined >= 40:
-        verdict = "REVIEW"
     else:
-        verdict = "APPROVED"
+        combined = (detector_score * 0.6) + (investigator_deviation * 0.4)
+        if combined >= 70:
+            verdict = "REJECTED"
+        elif combined >= 40:
+            verdict = "REVIEW"
+        else:
+            verdict = "APPROVED"
 
     # Step 3 — Confidence
     if combined >= 85 or combined <= 15:

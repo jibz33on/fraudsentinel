@@ -159,6 +159,8 @@ POST /dashboard/transaction/{id}/reject         ← manual reject
 ✅ Live polling on dashboard (5s) and analytics (15s)
 ✅ Settings page with test transaction form (POST /analyze)
 ✅ All 8 routes compile clean, no TS errors, committed and pushed
+✅ transaction_count auto-increments in db/users.py on every /analyze call
+✅ avg_spend now computed as rolling average from last 30 transactions in profiler.py (falls back to seeded value if no history)
 
 ## Remaining TODOs
 ⬜ UI polish pass — /transactions, /users, /analytics, /settings
@@ -197,8 +199,7 @@ POST /dashboard/transaction/{id}/reject         ← manual reject
 ## Seed Users (Supabase)
 6 users seeded: Jimmy K, Mark T, Sarah M, Priya S, Alex R, TechCorp Ltd
 Transactions table: ~8 seed rows total (thin history)
-Note: transaction_count on users table is seeded high but actual 
-transactions table rows are sparse — seed_data.py needed
+transaction_count updates live on every /analyze call via db/users.py
 
 ## Next Session Starts With
 1. Screenshot review of /transactions, /users, /analytics, /settings

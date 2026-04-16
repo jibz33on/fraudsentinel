@@ -31,6 +31,11 @@ def detector_node(state: FraudState) -> FraudState:
             "hour": state["hour"],
             "merchant": state["merchant"],
             "method": state["method"],
+            "currency": state["currency"],
+            "ip_address": state["ip_address"],
+            "ip_country": state["ip_country"],
+            "device": state["device"],
+            "created_at": state["created_at"],
         }
         profile = get_user_profile(state["user_id"])
         start = time.time()
@@ -85,6 +90,11 @@ def investigator_node(state: FraudState) -> dict:
             "hour": state["hour"],
             "merchant": state["merchant"],
             "method": state["method"],
+            "currency": state["currency"],
+            "ip_address": state["ip_address"],
+            "ip_country": state["ip_country"],
+            "device": state["device"],
+            "created_at": state["created_at"],
         }
         start = time.time()
         result = investigate(transaction, profile)
@@ -181,6 +191,11 @@ def run_pipeline(transaction: dict) -> FraudState:
         "hour": transaction.get("hour", 0),
         "merchant": transaction.get("merchant", ""),
         "method": transaction.get("method", ""),
+        "currency": transaction.get("currency", "USD"),
+        "ip_address": transaction.get("ip_address", ""),
+        "ip_country": transaction.get("ip_country", ""),
+        "device": transaction.get("device", ""),
+        "created_at": transaction.get("created_at", ""),
         "detector_score": 0,
         "detector_flags": [],
         "detector_verdict": "",

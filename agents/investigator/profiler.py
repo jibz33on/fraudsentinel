@@ -9,7 +9,7 @@ def get_user_profile(user_id: str) -> dict:
     avg_spend = user_row.get("avg_spend", 0.0)
     account_age_days = user_row.get("account_age_days", 0)
 
-    txns = list_transactions(user_id)
+    txns = list_transactions(user_id, limit=30)
 
     if not txns:
         return {
@@ -41,7 +41,7 @@ def get_user_profile(user_id: str) -> dict:
 
     return {
         "avg_amount": avg_amount,
-        "avg_spend": avg_spend,
+        "avg_spend": avg_amount,
         "account_age_days": account_age_days,
         "known_countries": known_countries,
         "known_merchants": known_merchants,

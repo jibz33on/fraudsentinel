@@ -10,6 +10,7 @@ from fastapi.responses import JSONResponse
 
 from api.models import TransactionRequest, AnalyzeResponse
 from db.client import supabase
+from db.users import increment_transaction_count
 from graph.pipeline import run_pipeline
 
 router = APIRouter()
@@ -30,6 +31,8 @@ def analyze(request: TransactionRequest):
             "status":     "complete",
             "created_at": datetime.utcnow().isoformat(),
         }).execute()
+
+        increment_transaction_count(request.user_id)
 
         result = run_pipeline(request.model_dump())
         return AnalyzeResponse(

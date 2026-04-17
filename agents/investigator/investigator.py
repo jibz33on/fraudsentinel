@@ -6,9 +6,21 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspa
 from agents.investigator.profiler import get_user_profile
 
 
+NEW_ACCOUNT_THRESHOLD = 5
+
+
 def investigate(transaction: dict, profile: dict) -> dict:
-    # LLM summary fires when deviation_score > 50 (same pattern as DETECTOR)
-    # Low deviation → rule-based summary string
+    transaction_count = profile.get("transaction_count", 0)
+    if transaction_count < NEW_ACCOUNT_THRESHOLD:
+        return {
+            "deviation_score": 0,
+            "summary": (
+                f"NEW_ACCOUNT: This user has {transaction_count} transaction(s) on record. "
+                f"At least {NEW_ACCOUNT_THRESHOLD} are needed to establish a behavioural baseline. "
+                "Behavioural analysis is unavailable — rely on Detector signals only."
+            ),
+            "signals": {},
+        }
 
     signals = {}
     notes = []
@@ -78,38 +90,43 @@ def investigate(transaction: dict, profile: dict) -> dict:
 
     deviation_score = sum(signals.values())
 
-    if deviation_score > 30:
+    if deviation_score >= 10:
         from tools.llm_router import call_llm
         avg_spend = profile.get("avg_spend") or profile.get("avg_amount") or 0
-        usual_location = ", ".join(profile.get("known_countries", [])) or "unknown"
+        usual_location = profile.get("usual_location") or ", ".join(profile.get("known_countries", [])) or "unknown"
         usual_hours = profile.get("typical_hours", [])
+        known_merchants = profile.get("known_merchants", [])
         hour = transaction.get("hour", 0)
         amount = transaction.get("amount", 0)
         location = transaction.get("country", "")
+        merchant = transaction.get("merchant", "")
+        signals_detail = ", ".join(notes) if notes else "none"
         prompt = f"""You are a fraud analyst reviewing behavioural deviation signals for a transaction.
 
 User's normal behaviour:
 - Average spend: ${avg_spend:.0f}
-- Usual countries: {usual_location}
-- Typical transaction hours: {usual_hours}
+- Usual location: {usual_location}
+- Typical transaction hours (UTC): {usual_hours}
+- Known merchants: {', '.join(known_merchants[:5]) or 'unknown'}
 
 This transaction:
 - Amount: ${amount:.0f}
 - Country: {location}
 - Hour: {hour}:00
+- Merchant: {merchant}
 
-Deviation signals detected: {', '.join(notes)}
+Deviation signals: {signals_detail}
 Deviation score: {deviation_score}/100
 
 Respond in exactly this format, no markdown, no bullet symbols:
 
-PATTERN: [one sentence describing the user's normal behaviour]
-DEVIATION: [one sentence on exactly how this transaction differs from that pattern]
-RISK: [one sentence on why this deviation is or isn't suspicious]"""
+PATTERN: [one sentence describing what is normal for this user]
+DEVIATION: [one sentence on exactly what is different about this transaction, or "none" if behaviour matches]
+RISK: [one sentence on whether these deviations are suspicious and why]"""
         try:
             summary = call_llm(prompt)
         except Exception:
-            summary = ", ".join(notes) if notes else "no significant deviations"
+            summary = signals_detail if signals_detail != "none" else "no significant deviations"
     else:
         summary = ", ".join(notes) if notes else "no significant deviations"
 

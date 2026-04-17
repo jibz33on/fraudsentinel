@@ -8,67 +8,29 @@ import { TopBar } from "@/components/layout/TopBar"
 import type { UserProfile } from "@/lib/types"
 
 const riskColors: Record<string, string> = {
-  low:    "bg-green-500/20 text-[var(--accent-green)] border-green-500/30",
-  medium: "bg-amber-500/20 text-[var(--accent-amber)] border-amber-500/30",
-  high:   "bg-red-500/20 text-[var(--accent-red)] border-red-500/30",
+  low:    "text-green-400 border-green-600 bg-green-900/30",
+  medium: "text-amber-400 border-amber-600 bg-amber-900/30",
+  high:   "text-red-400 border-red-600 bg-red-900/30",
 }
 
-function RiskBadge({ profile }: { profile: string }) {
-  const key = profile.toLowerCase()
-  const cls = riskColors[key] ?? "bg-white/10 text-[var(--text-secondary)] border-white/20"
+function Avatar({ name }: { name: string }) {
+  const initials = name.split(" ").map(p => p[0]).join("").slice(0, 2).toUpperCase()
   return (
-    <span className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-mono uppercase tracking-wider border ${cls}`}>
-      {profile}
-    </span>
+    <div
+      className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-mono font-bold shrink-0"
+      style={{ background: "var(--accent-blue)22", border: "1px solid var(--accent-blue)44", color: "var(--accent-blue)" }}
+    >
+      {initials}
+    </div>
   )
 }
 
-function UserCard({ user }: { user: UserProfile }) {
-  const initials = user.name
-    .split(" ")
-    .map((p) => p[0])
-    .join("")
-    .slice(0, 2)
-    .toUpperCase()
-
+function RiskBadge({ profile }: { profile: string }) {
+  const cls = riskColors[profile.toLowerCase()] ?? "text-gray-400 border-gray-600 bg-gray-900/30"
   return (
-    <Link
-      href={`/user/${user.id}`}
-      className="block rounded-lg border p-5 hover:border-white/20 transition-colors"
-      style={{ background: "var(--surface)", borderColor: "var(--border)" }}
-    >
-      <div className="flex items-start gap-4 mb-4">
-        <div
-          className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-mono font-bold shrink-0"
-          style={{
-            background: "var(--accent-blue)22",
-            border: "1px solid var(--accent-blue)44",
-            color: "var(--accent-blue)",
-          }}
-        >
-          {initials}
-        </div>
-        <div className="flex-1 min-w-0">
-          <div className="text-white font-semibold text-sm truncate">{user.name}</div>
-          <div className="text-[var(--text-secondary)] text-xs font-mono truncate">{user.email}</div>
-        </div>
-        <RiskBadge profile={user.risk_profile} />
-      </div>
-      <div className="grid grid-cols-3 gap-3">
-        <div>
-          <div className="text-[10px] font-mono uppercase text-[var(--text-secondary)] mb-0.5">Avg Spend</div>
-          <div className="text-white text-xs font-mono font-bold">${user.avg_spend}</div>
-        </div>
-        <div>
-          <div className="text-[10px] font-mono uppercase text-[var(--text-secondary)] mb-0.5">Location</div>
-          <div className="text-white text-xs font-mono truncate">{user.usual_location}</div>
-        </div>
-        <div>
-          <div className="text-[10px] font-mono uppercase text-[var(--text-secondary)] mb-0.5">Account Age</div>
-          <div className="text-white text-xs font-mono font-bold">{user.account_age_days}d</div>
-        </div>
-      </div>
-    </Link>
+    <span className={`text-[10px] font-mono uppercase px-2 py-0.5 rounded border ${cls}`}>
+      {profile}
+    </span>
   )
 }
 
@@ -80,7 +42,7 @@ export default function UsersPage() {
   useEffect(() => {
     getUsers()
       .then(setUsers)
-      .catch((e) => setError(e instanceof Error ? e.message : "Failed to load users"))
+      .catch(e => setError(e instanceof Error ? e.message : "Failed to load users"))
       .finally(() => setLoading(false))
   }, [])
 
@@ -106,9 +68,70 @@ export default function UsersPage() {
       <div className="flex flex-col flex-1 overflow-hidden">
         <TopBar title="Users" />
         <main className="flex-1 overflow-y-auto p-6">
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
-            {users.map((user) => (
-              <UserCard key={user.id} user={user} />
+          <div className="rounded-lg border overflow-hidden" style={{ borderColor: "var(--border)" }}>
+
+            {/* Header */}
+            <div
+              className="grid grid-cols-[2fr_1fr_1fr_1.5fr_1fr_1fr_1fr_1fr] gap-4 px-5 py-3 text-[10px] font-mono uppercase tracking-widest text-[var(--text-secondary)]"
+              style={{ background: "var(--surface-2, #0f0f1a)", borderBottom: "1px solid var(--border)" }}
+            >
+              <div>User</div>
+              <div>Risk</div>
+              <div>Avg Spend</div>
+              <div>Location</div>
+              <div>Hours</div>
+              <div>Txns</div>
+              <div className="text-[var(--accent-amber)]">Flagged</div>
+              <div className="text-[var(--accent-red)]">Rejected</div>
+            </div>
+
+            {/* Rows */}
+            {users.map((user, i) => (
+              <Link
+                key={user.id}
+                href={`/user/${user.id}`}
+                className="grid grid-cols-[2fr_1fr_1fr_1.5fr_1fr_1fr_1fr_1fr] gap-4 px-5 py-4 items-center hover:bg-white/5 transition-colors"
+                style={{
+                  background: "var(--surface)",
+                  borderBottom: i < users.length - 1 ? "1px solid var(--border)" : "none",
+                }}
+              >
+                <div className="flex items-center gap-3 min-w-0">
+                  <Avatar name={user.name} />
+                  <div className="min-w-0">
+                    <div className="text-white text-sm font-semibold truncate">{user.name}</div>
+                    <div className="text-[var(--text-secondary)] text-xs font-mono truncate">{user.email}</div>
+                  </div>
+                </div>
+
+                <div><RiskBadge profile={user.risk_profile} /></div>
+
+                <div className="font-mono text-white text-sm font-bold">
+                  ${user.avg_spend.toLocaleString()}
+                </div>
+
+                <div className="text-white text-xs font-mono truncate">{user.usual_location}</div>
+
+                <div className="text-[var(--text-secondary)] text-xs font-mono">{user.usual_hours || "—"}</div>
+
+                <div className="font-mono text-white text-sm">{user.transaction_count.toLocaleString()}</div>
+
+                <div>
+                  {(user.review_count ?? 0) > 0 ? (
+                    <span className="font-mono text-sm text-[var(--accent-amber)] font-bold">{user.review_count}</span>
+                  ) : (
+                    <span className="font-mono text-sm text-[var(--text-secondary)]">0</span>
+                  )}
+                </div>
+
+                <div>
+                  {(user.rejected_count ?? 0) > 0 ? (
+                    <span className="font-mono text-sm text-[var(--accent-red)] font-bold">{user.rejected_count}</span>
+                  ) : (
+                    <span className="font-mono text-sm text-[var(--text-secondary)]">0</span>
+                  )}
+                </div>
+              </Link>
             ))}
           </div>
         </main>

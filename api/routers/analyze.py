@@ -25,7 +25,7 @@ def analyze(request: TransactionRequest):
             "amount":     request.amount,
             "currency":   request.currency,
             "merchant":   request.merchant,
-            "location":   request.country,
+            "location":   request.location or request.country,
             "ip_address": request.ip_address,
             "device":     request.device,
             "status":     "complete",

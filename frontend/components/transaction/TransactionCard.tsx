@@ -23,12 +23,18 @@ function AnomalyBanner({ tx, userBehavior }: { tx: Transaction; userBehavior?: U
     }
   }
 
-  if (
-    userBehavior.usualLocation &&
-    tx.location &&
-    !tx.location.toLowerCase().includes(userBehavior.usualLocation.toLowerCase().split(",")[0])
-  ) {
-    anomalies.push(`New location — usual: ${userBehavior.usualLocation}`)
+  if (userBehavior.usualLocation && tx.location &&
+      userBehavior.usualLocation.toLowerCase() !== "unknown") {
+    const usualCity = userBehavior.usualLocation.toLowerCase().split(",")[0].trim()
+    const usualCountry = userBehavior.usualLocation.toLowerCase().split(",").pop()?.trim() ?? ""
+    const txLoc = tx.location.toLowerCase().trim()
+    const isKnownLocation =
+      txLoc.includes(usualCity) ||
+      txLoc.includes(usualCountry) ||
+      usualCountry.includes(txLoc)   // catches "IN" ⊂ "india"
+    if (!isKnownLocation) {
+      anomalies.push(`New location — usual: ${userBehavior.usualLocation}`)
+    }
   }
 
   if (anomalies.length === 0) return null

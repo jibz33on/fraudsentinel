@@ -1,7 +1,8 @@
 "use client"
 
-import { useState } from "react"
-import { submitAnalyze } from "@/lib/api"
+import { useState, useEffect } from "react"
+import { submitAnalyze, createUser, getUsers } from "@/lib/api"
+import type { UserProfile } from "@/lib/types"
 import { Sidebar } from "@/components/layout/Sidebar"
 import { TopBar } from "@/components/layout/TopBar"
 
@@ -13,7 +14,7 @@ const PIPELINE_STAGES = [
   { name: "DECISION",     desc: "Final verdict (APPROVE / REVIEW / REJECT) + LLM reasoning" },
 ]
 
-const SEED_USERS = [
+const DEFAULT_USERS = [
   { id: "55472a7d-8980-4777-b98d-e8b65e65d33c", label: "Jimmy K" },
   { id: "67f045c9-658d-4e62-8300-877be9a006d1", label: "Mark T" },
   { id: "720b0db6-e4b4-4ca1-9989-5693728d871a", label: "Sarah M" },
@@ -28,6 +29,7 @@ interface FormState {
   user_id:    string
   amount:     string
   country:    string
+  location:   string
   hour:       string
   merchant:   string
   method:     string
@@ -72,10 +74,44 @@ const verdictColors: Record<string, string> = {
 }
 
 export default function SettingsPage() {
+  const [userList, setUserList] = useState(DEFAULT_USERS)
+
+  useEffect(() => {
+    getUsers().then((users) =>
+      setUserList(users.map((u) => ({ id: u.id, label: u.name })))
+    ).catch(() => {/* keep DEFAULT_USERS on failure */})
+  }, [])
+
+  const [newUserName,   setNewUserName]   = useState("")
+  const [newUserEmail,  setNewUserEmail]  = useState("")
+  const [creatingUser,  setCreatingUser]  = useState(false)
+  const [createdUser,   setCreatedUser]   = useState<UserProfile | null>(null)
+  const [createError,   setCreateError]   = useState<string | null>(null)
+
+  async function handleCreateUser(e: { preventDefault: () => void }) {
+    e.preventDefault()
+    setCreatingUser(true)
+    setCreatedUser(null)
+    setCreateError(null)
+    try {
+      const user = await createUser(newUserName.trim(), newUserEmail.trim())
+      setUserList((prev) => [...prev, { id: user.id, label: user.name }])
+      set("user_id", user.id)
+      setCreatedUser(user)
+      setNewUserName("")
+      setNewUserEmail("")
+    } catch (err) {
+      setCreateError(err instanceof Error ? err.message : "Failed to create user")
+    } finally {
+      setCreatingUser(false)
+    }
+  }
+
   const [form, setForm] = useState<FormState>({
-    user_id:    SEED_USERS[0].id,
+    user_id:    userList[0].id,
     amount:     "250",
     country:    "US",
+    location:   "United States",
     hour:       "14",
     merchant:   "Amazon",
     method:     "card",
@@ -92,7 +128,7 @@ export default function SettingsPage() {
     setForm((f) => ({ ...f, [key]: value }))
   }
 
-  async function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: { preventDefault: () => void }) {
     e.preventDefault()
     setSubmitting(true)
     setResult(null)
@@ -103,6 +139,7 @@ export default function SettingsPage() {
         user_id:        form.user_id,
         amount:         parseFloat(form.amount) || 0,
         country:        form.country,
+        location:       form.location,
         hour:           parseInt(form.hour, 10) || 0,
         merchant:       form.merchant,
         method:         form.method,
@@ -158,6 +195,74 @@ export default function SettingsPage() {
             </div>
           </Section>
 
+          {/* Create test user */}
+          <Section title="Create Test User">
+            <p className="text-[11px] font-mono text-[var(--text-secondary)] leading-relaxed">
+              New users have 0 transactions — no behavioural baseline can be built. Submit a transaction for a new
+              user to see the <span className="text-blue-400">New Account</span> panel in the investigator output.
+            </p>
+            <form onSubmit={handleCreateUser} className="flex flex-col gap-3">
+              <div className="grid grid-cols-2 gap-3">
+                <div className="flex flex-col gap-1">
+                  <label className="text-[10px] font-mono uppercase text-[var(--text-secondary)]">Full Name</label>
+                  <input
+                    type="text"
+                    required
+                    value={newUserName}
+                    onChange={(e) => setNewUserName(e.target.value)}
+                    placeholder="e.g. Jane Doe"
+                    className={inputCls}
+                    style={inputStyle}
+                  />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <label className="text-[10px] font-mono uppercase text-[var(--text-secondary)]">Email</label>
+                  <input
+                    type="email"
+                    required
+                    value={newUserEmail}
+                    onChange={(e) => setNewUserEmail(e.target.value)}
+                    placeholder="e.g. jane@example.com"
+                    className={inputCls}
+                    style={inputStyle}
+                  />
+                </div>
+              </div>
+              <button
+                type="submit"
+                disabled={creatingUser}
+                className="px-4 py-2 rounded-lg text-xs font-mono font-bold transition-colors disabled:opacity-50"
+                style={{
+                  background: "var(--accent-blue)22",
+                  border:     "1px solid var(--accent-blue)44",
+                  color:      "var(--accent-blue)",
+                }}
+              >
+                {creatingUser ? "Creating…" : "Create User"}
+              </button>
+            </form>
+
+            {createdUser && (
+              <div
+                className="rounded-lg border p-3 flex flex-col gap-1"
+                style={{ borderColor: "var(--accent-green)44", background: "var(--accent-green)11" }}
+              >
+                <div className="text-[10px] font-mono uppercase text-[var(--accent-green)] mb-1">User Created</div>
+                <div className="text-xs font-mono text-white">{createdUser.name}</div>
+                <div className="text-[11px] font-mono text-[var(--text-secondary)]">{createdUser.email}</div>
+                <div className="text-[9px] font-mono text-[var(--text-secondary)] mt-1">ID: {createdUser.id}</div>
+                <div className="text-[10px] font-mono text-[var(--text-secondary)] mt-1">
+                  Now submit a transaction above using this user ID to see the{" "}
+                  <span className="text-blue-400">New Account</span> investigator panel.
+                </div>
+              </div>
+            )}
+
+            {createError && (
+              <div className="text-xs font-mono text-[var(--accent-red)]">{createError}</div>
+            )}
+          </Section>
+
           {/* Test transaction form */}
           <Section title="Submit Test Transaction">
             <form onSubmit={handleSubmit} className="flex flex-col gap-3">
@@ -171,7 +276,7 @@ export default function SettingsPage() {
                     className={inputCls}
                     style={{ ...inputStyle, background: "var(--surface)" }}
                   >
-                    {SEED_USERS.map((u) => (
+                    {userList.map((u) => (
                       <option key={u.id} value={u.id}>{u.label}</option>
                     ))}
                   </select>
@@ -214,6 +319,19 @@ export default function SettingsPage() {
                     className={inputCls}
                     style={inputStyle}
                     placeholder="e.g. US"
+                  />
+                </div>
+
+                {/* Location */}
+                <div className="flex flex-col gap-1">
+                  <label className="text-[10px] font-mono uppercase text-[var(--text-secondary)]">Location (full name)</label>
+                  <input
+                    type="text"
+                    value={form.location}
+                    onChange={(e) => set("location", e.target.value)}
+                    className={inputCls}
+                    style={inputStyle}
+                    placeholder="e.g. Kochi, India"
                   />
                 </div>
 

@@ -3,7 +3,7 @@ from fastapi.responses import FileResponse, JSONResponse
 
 from db.decisions import get_decision, list_decisions, patch_decision
 from db.transactions import get_transaction
-from db.users import get_user, list_users
+from db.users import get_user, list_users, create_user
 from db.client import supabase
 
 router = APIRouter()
@@ -167,9 +167,54 @@ def get_transaction_detail(transaction_id: str):
 @router.get("/users")
 def get_users():
     try:
-        return list_users()
+        users = list_users()
+
+        # Aggregate per-user fraud counts from agent_decisions → transactions
+        decisions = supabase.table("agent_decisions") \
+            .select("decision_verdict, transactions!inner(user_id)") \
+            .eq("status", "complete") \
+            .execute()
+
+        rejected_counts: dict[str, int] = {}
+        review_counts: dict[str, int] = {}
+        for row in decisions.data:
+            uid = (row.get("transactions") or {}).get("user_id")
+            verdict = row.get("decision_verdict")
+            if not uid or not verdict:
+                continue
+            if verdict == "REJECTED":
+                rejected_counts[uid] = rejected_counts.get(uid, 0) + 1
+            elif verdict == "REVIEW":
+                review_counts[uid] = review_counts.get(uid, 0) + 1
+
+        return [
+            {
+                **u,
+                "rejected_count": rejected_counts.get(u["id"], 0),
+                "review_count":   review_counts.get(u["id"], 0),
+            }
+            for u in users
+        ]
     except Exception as e:
         return JSONResponse(status_code=500, content={"error": "Failed to fetch users", "detail": str(e)})
+
+
+@router.post("/users")
+def create_user_endpoint(body: dict):
+    try:
+        name  = (body.get("name") or "").strip()
+        email = (body.get("email") or "").strip()
+        if not name or not email:
+            raise HTTPException(status_code=422, detail="name and email are required")
+        row = create_user(name, email)
+        return row
+    except HTTPException:
+        raise
+    except Exception as e:
+        msg = str(e)
+        if "duplicate key" in msg and "email" in msg:
+            raise HTTPException(status_code=409, detail=f"A user with email '{body.get('email')}' already exists")
+        return JSONResponse(status_code=500, content={"error": msg})
 
 
 @router.get("/users/{user_id}")

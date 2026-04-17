@@ -28,3 +28,21 @@ def increment_transaction_count(user_id: str) -> None:
         return
     current = row.get("transaction_count") or 0
     client.patch("users", {"id": f"eq.{user_id}"}, {"transaction_count": current + 1})
+
+
+def create_user(name: str, email: str) -> dict:
+    """Create a new user with zeroed stats. Returns the created row."""
+    import uuid
+    payload = {
+        "id":                str(uuid.uuid4()),
+        "name":              name,
+        "email":             email,
+        "avg_spend":         0,
+        "usual_location":    "Unknown",
+        "usual_hours":       "",
+        "transaction_count": 0,
+        "account_age_days":  0,
+        "risk_profile":      "low",
+    }
+    row = client.post("users", payload)
+    return row if row else payload

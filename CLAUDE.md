@@ -10,7 +10,7 @@ Transaction → DETECTOR → INVESTIGATOR → DECISION → Supabase → Dashboar
 
 ## The 3 Agents
 DETECTOR     → rule-based risk scorer + LLM for ambiguous scores (40-70)
-INVESTIGATOR → behavioral deviation analysis + LLM when deviation > 50
+INVESTIGATOR → behavioral deviation analysis + LLM when deviation >= 10
 DECISION     → final verdict (APPROVE / REVIEW / REJECT) + LLM reasoning
 
 ## Tech Stack
@@ -123,8 +123,11 @@ GET  /health           ← health check
 GET  /dashboard/stats                           ← summary stats
 GET  /dashboard/transactions                    ← recent transactions (status=complete only)
 GET  /dashboard/transaction/{id}
+GET  /dashboard/users                           ← all users + per-user rejected/review counts
 GET  /dashboard/users/{id}
+POST /dashboard/users                           ← create new user (name + email required)
 GET  /dashboard/activity
+GET  /dashboard/analytics
 POST /dashboard/transaction/{id}/approve        ← manual approve
 POST /dashboard/transaction/{id}/reject         ← manual reject
 
@@ -161,6 +164,24 @@ POST /dashboard/transaction/{id}/reject         ← manual reject
 ✅ All 8 routes compile clean, no TS errors, committed and pushed
 ✅ transaction_count auto-increments in db/users.py on every /analyze call
 ✅ avg_spend now computed as rolling average from last 30 transactions in profiler.py (falls back to seeded value if no history)
+
+## Apr 17 Session — Agent Tuning + New Account Handling
+✅ /users page redesigned — full table layout with Flagged + Rejected count columns per user
+✅ Transaction detail page — user baseline card expanded to show all 8 profile fields + risk badge
+✅ INVESTIGATOR LLM threshold lowered from > 15 to >= 10 (richer output for borderline cases)
+✅ NEW_ACCOUNT handling — users with < 5 transactions skip behavioural analysis
+   - investigator.py returns NEW_ACCOUNT: prefixed summary with explanation
+   - AgentReasoning.tsx renders blue "New Account" panel instead of PATTERN/DEVIATION/RISK
+   - DECISION agent uses detector score alone for new accounts (not averaged with 0 deviation)
+✅ DETECTOR — location flag suppressed for users with usual_location = "Unknown" (new accounts)
+✅ DETECTOR — pgvector similarity search skipped for accounts < 30 days old (too noisy)
+✅ DETECTOR — "similar_past_fraud" flag renamed to "similar fraud pattern: matches known rejected transaction"
+✅ Frontend anomaly banner — no longer shows "New location → usual: Unknown" for new users
+✅ POST /dashboard/users endpoint — creates new users from the Settings page
+✅ db/users.py — create_user() function added
+✅ Settings page — "Create Test User" section added (name + email form)
+✅ Settings page — user dropdown now loads live from API on mount (newly created users appear immediately)
+✅ Settings page — after creating a user, they're auto-added to dropdown and auto-selected
 
 ## Remaining TODOs
 ⬜ UI polish pass — /transactions, /users, /analytics, /settings

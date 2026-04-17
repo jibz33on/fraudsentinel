@@ -17,9 +17,14 @@ export default async function TransactionDetailPage({
   const user = await getUser(tx.user_id ?? "")
 
   const userBehavior = {
-    avgSpend:       user.avg_spend,
-    usualLocation:  user.usual_location,
-    accountAgeDays: user.account_age_days,
+    name:             user.name,
+    email:            user.email,
+    avgSpend:         user.avg_spend,
+    usualLocation:    user.usual_location,
+    usualHours:       user.usual_hours,
+    transactionCount: user.transaction_count,
+    accountAgeDays:   user.account_age_days,
+    riskProfile:      user.risk_profile,
   }
 
   return (
@@ -36,10 +41,23 @@ export default async function TransactionDetailPage({
               className="rounded-lg border p-5"
               style={{ background: "var(--surface)", borderColor: "var(--border)" }}
             >
-              <div className="text-xs font-mono uppercase tracking-widest text-[var(--text-secondary)] mb-4">
-                User Behavior Baseline
+              <div className="flex items-center justify-between mb-4">
+                <div className="text-xs font-mono uppercase tracking-widest text-[var(--text-secondary)]">
+                  {userBehavior.name}&apos;s Baseline
+                </div>
+                <span
+                  className={`text-[10px] font-mono uppercase px-2 py-0.5 rounded border ${
+                    userBehavior.riskProfile === "low"
+                      ? "text-green-400 border-green-600 bg-green-900/30"
+                      : userBehavior.riskProfile === "high"
+                      ? "text-red-400 border-red-600 bg-red-900/30"
+                      : "text-amber-400 border-amber-600 bg-amber-900/30"
+                  }`}
+                >
+                  {userBehavior.riskProfile} risk
+                </span>
               </div>
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-2 gap-x-6 gap-y-4">
                 <div>
                   <div className="text-[10px] font-mono uppercase text-[var(--text-secondary)] mb-1">
                     Avg Spend
@@ -58,10 +76,34 @@ export default async function TransactionDetailPage({
                 </div>
                 <div>
                   <div className="text-[10px] font-mono uppercase text-[var(--text-secondary)] mb-1">
+                    Typical Hours
+                  </div>
+                  <div className="font-mono text-white text-sm">
+                    {userBehavior.usualHours || "—"}
+                  </div>
+                </div>
+                <div>
+                  <div className="text-[10px] font-mono uppercase text-[var(--text-secondary)] mb-1">
+                    Transactions
+                  </div>
+                  <div className="font-mono text-white font-bold">
+                    {userBehavior.transactionCount}
+                  </div>
+                </div>
+                <div>
+                  <div className="text-[10px] font-mono uppercase text-[var(--text-secondary)] mb-1">
                     Account Age
                   </div>
                   <div className="font-mono text-white font-bold">
                     {userBehavior.accountAgeDays}d
+                  </div>
+                </div>
+                <div>
+                  <div className="text-[10px] font-mono uppercase text-[var(--text-secondary)] mb-1">
+                    Email
+                  </div>
+                  <div className="font-mono text-[var(--text-secondary)] text-xs truncate">
+                    {userBehavior.email}
                   </div>
                 </div>
               </div>

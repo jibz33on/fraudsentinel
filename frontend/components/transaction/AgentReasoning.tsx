@@ -121,14 +121,27 @@ export function AgentReasoning({ decision }: { decision: AgentDecision }) {
             <span className="text-xs font-mono text-[var(--text-secondary)]">②</span>
             <AgentBadge agent="INVESTIGATOR" />
           </div>
-          <span className="text-xs font-mono text-[var(--text-secondary)]">
-            deviation:{" "}
-            <span className="text-[var(--accent-amber)]">
-              {decision.investigator.deviation_score}
+          {!decision.investigator.summary?.startsWith("NEW_ACCOUNT:") && (
+            <span className="text-xs font-mono text-[var(--text-secondary)]">
+              deviation:{" "}
+              <span className="text-[var(--accent-amber)]">
+                {decision.investigator.deviation_score}
+              </span>
             </span>
-          </span>
+          )}
         </div>
-        <StructuredReason reason={decision.investigator.summary ?? ""} />
+        {decision.investigator.summary?.startsWith("NEW_ACCOUNT:") ? (
+          <div className="rounded border border-blue-700/50 bg-blue-900/20 px-3 py-3">
+            <div className="text-[10px] font-mono uppercase tracking-widest text-blue-400 mb-2">
+              New Account
+            </div>
+            <p className="text-xs text-blue-200 leading-relaxed">
+              {decision.investigator.summary.replace("NEW_ACCOUNT: ", "")}
+            </p>
+          </div>
+        ) : (
+          <StructuredReason reason={decision.investigator.summary ?? ""} />
+        )}
       </div>
 
       {/* DECISION */}

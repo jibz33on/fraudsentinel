@@ -6,6 +6,7 @@ class TransactionRequest(BaseModel):
     user_id: str
     amount: float
     country: str
+    location: str = ""
     hour: int
     merchant: str
     method: str

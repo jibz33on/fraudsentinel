@@ -39,17 +39,23 @@ def get_user_profile(user_id: str) -> dict:
 
     known_devices = list({t["device"] for t in txns if t.get("device")})
 
+    def _parse_utc(ts: str) -> datetime:
+        dt = datetime.fromisoformat(ts.replace("Z", "+00:00"))
+        if dt.tzinfo is None:
+            dt = dt.replace(tzinfo=timezone.utc)
+        return dt
+
     typical_hours = list({
-        datetime.fromisoformat(t["created_at"].replace("Z", "+00:00")).hour
+        _parse_utc(t["created_at"]).hour
         for t in txns
         if t.get("created_at")
     })
 
     cutoff = datetime.now(timezone.utc) - timedelta(hours=24)
+
     recent_transaction_count = sum(
         1 for t in txns
-        if t.get("created_at") and
-        datetime.fromisoformat(t["created_at"].replace("Z", "+00:00")) > cutoff
+        if t.get("created_at") and _parse_utc(t["created_at"]) > cutoff
     )
 
     return {

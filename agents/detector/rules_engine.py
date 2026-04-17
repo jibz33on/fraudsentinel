@@ -8,6 +8,7 @@ Output: list of flag strings
 HIGH_RISK_KEYWORDS = ["crypto", "casino", "gambling", "forex", "wire transfer"]
 
 DOMESTIC_INDICATORS = ["india", "kochi", "mumbai", "delhi", "bangalore", "chennai"]
+INDIA_ISO_CODES = {"in", "ind"}
 
 
 def check_rules(transaction: dict, user_profile: dict) -> list[str]:
@@ -29,7 +30,8 @@ def check_rules(transaction: dict, user_profile: dict) -> list[str]:
         flags.append(f"Amount {multiple}x above user average")
 
     # 2. LOCATION ANOMALY — transaction not in user's usual location
-    if usual_location and location:
+    # Skip if no established location (new accounts have usual_location = "Unknown")
+    if usual_location and location and usual_location.lower() not in ("unknown", ""):
         if usual_location.lower() not in location.lower() and location.lower() not in usual_location.lower():
             flags.append(f"Transaction in unfamiliar location: {location}")
 
@@ -61,7 +63,11 @@ def check_rules(transaction: dict, user_profile: dict) -> list[str]:
     usual_lower = usual_location.lower()
     location_lower = location.lower()
     is_domestic_user = any(city in usual_lower for city in DOMESTIC_INDICATORS)
-    is_foreign_txn = not any(city in location_lower for city in DOMESTIC_INDICATORS) and "india" not in location_lower
+    is_india_location = (
+        any(city in location_lower for city in DOMESTIC_INDICATORS)
+        or location_lower.strip() in INDIA_ISO_CODES
+    )
+    is_foreign_txn = not is_india_location
     if is_domestic_user and is_foreign_txn:
         flags.append("Foreign transaction for domestic user")
 

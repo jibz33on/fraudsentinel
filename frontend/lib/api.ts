@@ -67,6 +67,7 @@ export async function submitAnalyze(payload: {
   user_id: string
   amount: number
   country: string
+  location?: string
   hour: number
   merchant: string
   method: string
@@ -96,4 +97,14 @@ export async function rejectTransaction(id: string): Promise<void> {
     method: "POST",
   })
   if (!res.ok) throw new Error(`rejectTransaction failed: ${res.status}`)
+}
+
+export async function createUser(name: string, email: string): Promise<UserProfile> {
+  const res = await fetch(`${API_BASE}/dashboard/users`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ name, email }),
+  })
+  if (!res.ok) throw new Error(`createUser failed: ${res.status}`)
+  return res.json()
 }

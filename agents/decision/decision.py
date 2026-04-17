@@ -9,9 +9,21 @@ def decide(detector: dict, investigator: dict) -> dict:
     investigator_deviation = investigator["investigator_deviation"]
 
     # Step 1 — Hard override: extreme detector score always REJECTs
+    investigator_summary = investigator.get("investigator_summary", "")
+    is_new_account = investigator_summary.startswith("NEW_ACCOUNT:")
+
     if detector_score >= 90:
         combined = float(detector_score)
         verdict = "REJECTED"
+    elif is_new_account:
+        # No behavioural baseline — use detector score alone (don't artificially lower by averaging with 0)
+        combined = float(detector_score)
+        if combined >= 70:
+            verdict = "REJECTED"
+        elif combined >= 40:
+            verdict = "REVIEW"
+        else:
+            verdict = "APPROVED"
     else:
         combined = (detector_score * 0.6) + (investigator_deviation * 0.4)
         if combined >= 70:

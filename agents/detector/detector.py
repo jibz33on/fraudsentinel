@@ -35,16 +35,18 @@ class DetectorAgent:
         # Layer 1: rules
         flags = check_rules(transaction, user_profile)
 
-        # Layer 0 — pgvector memory search
-        try:
-            from memory.memory import search_similar
-            query = f"{transaction.get('merchant', '')} {transaction.get('location', '')}"
-            similar = search_similar(query, limit=3)
-            past_frauds = [r for r in similar if r.get("decision_verdict") == "REJECTED"]
-            if len(past_frauds) >= 2:
-                flags.append("similar_past_fraud: matched past rejected transaction")
-        except Exception as e:
-            logger.warning(f"Memory Search failed for {txn_id}: {e}")
+        # Layer 0 — pgvector memory search (skip for new accounts — too noisy with common merchants)
+        account_age_days = int(user_profile.get("account_age_days", 0))
+        if account_age_days >= 30:
+            try:
+                from memory.memory import search_similar
+                query = f"{transaction.get('merchant', '')} {transaction.get('location', '')}"
+                similar = search_similar(query, limit=3)
+                past_frauds = [r for r in similar if r.get("decision_verdict") == "REJECTED"]
+                if len(past_frauds) >= 2:
+                    flags.append("similar fraud pattern: matches known rejected transaction")
+            except Exception as e:
+                logger.warning(f"Memory Search failed for {txn_id}: {e}")
 
         # Layer 2: scoring
         score = calculate_score(flags)

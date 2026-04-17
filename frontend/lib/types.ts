@@ -95,4 +95,6 @@ export interface UserProfile {
   account_age_days: number
   risk_profile: string
   created_at: string
+  rejected_count: number
+  review_count: number
 }

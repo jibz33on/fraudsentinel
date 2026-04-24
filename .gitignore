@@ -13,3 +13,5 @@ build/
 node_modules/
 *.log
 CLAUDE.md
+AGENTS.md
+roadmap.md

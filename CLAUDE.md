@@ -223,7 +223,7 @@ Transactions table: ~8 seed rows total (thin history)
 transaction_count updates live on every /analyze call via db/users.py
 
 ## Next Session Starts With
-1. Screenshot review of /transactions, /users, /analytics, /settings
+
 2. UI polish pass on each page
 3. Deploy backend → Railway
 4. Deploy frontend → Cloudflare Pages

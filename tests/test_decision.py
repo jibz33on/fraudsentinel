@@ -35,10 +35,12 @@ def get_verdict(combined):
 
 def get_confidence(combined):
     """Mirror of decision.py Step 3."""
-    if combined >= 80 or combined <= 20:
-        return 90
-    elif combined >= 60 or combined <= 40:
-        return 75
+    if combined >= 85 or combined <= 15:
+        return 95
+    elif combined >= 70 or combined <= 30:
+        return 85
+    elif combined >= 50:
+        return 70
     return 60
 
 
@@ -99,22 +101,33 @@ class TestVerdict:
 
 class TestConfidence:
 
+    def test_highest_confidence_at_90(self):
+        # 90 >= 85 → 95
+        assert get_confidence(90) == 95
+
+    def test_highest_confidence_at_10(self):
+        # 10 <= 15 → 95 (very clean transaction)
+        assert get_confidence(10) == 95
+
     def test_high_confidence_at_80(self):
-        assert get_confidence(80) == 90
+        # 80 >= 70 → 85
+        assert get_confidence(80) == 85
 
     def test_high_confidence_at_20(self):
-        # very clean transaction → also high confidence
-        assert get_confidence(20) == 90
+        # 20 <= 30 → 85
+        assert get_confidence(20) == 85
 
     def test_medium_confidence_at_60(self):
-        assert get_confidence(60) == 75
+        # 60 >= 50 → 70
+        assert get_confidence(60) == 70
 
-    def test_medium_confidence_at_40(self):
-        assert get_confidence(40) == 75
+    def test_low_confidence_at_40(self):
+        # 40 is not >= 85, not <= 15, not >= 70, not <= 30, not >= 50 → 60
+        assert get_confidence(40) == 60
 
-    def test_low_confidence_at_50(self):
-        # 50 is the ambiguous middle → lowest confidence
-        assert get_confidence(50) == 60
+    def test_medium_confidence_at_50(self):
+        # 50 >= 50 → 70
+        assert get_confidence(50) == 70
 
 
 # ─── Real decide() calls (LLM fires) ─────────────────────────────────────────
@@ -160,9 +173,9 @@ class TestDecisionGoldenDataset:
             "investigator_summary":   "Amount 53x normal, new country, unusual hour",
         }
         result = decide(detector, investigator)
-        # 90*0.6 + 85*0.4 = 54 + 34 = 88
+        # detector_score >= 90 → hard override: combined = 90.0 → confidence = 95
         assert result["verdict"] == "REJECTED"
-        assert result["confidence"] == 90
+        assert result["confidence"] == 95
 
     def test_clean_transaction_approved(self):
         """Low detector + low investigator → APPROVED."""
@@ -175,9 +188,9 @@ class TestDecisionGoldenDataset:
             "investigator_summary":   "no significant deviations",
         }
         result = decide(detector, investigator)
-        # 10*0.6 + 0*0.4 = 6
+        # 10*0.6 + 0*0.4 = 6.0 → combined <= 15 → confidence = 95
         assert result["verdict"] == "APPROVED"
-        assert result["confidence"] == 90
+        assert result["confidence"] == 95
 
     def test_ambiguous_review(self):
         """Mid detector + mid investigator → REVIEW."""

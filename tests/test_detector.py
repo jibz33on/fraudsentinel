@@ -23,7 +23,7 @@ def clean_profile():
         "avg_spend": 100,
         "usual_location": "Kochi, India",
         "account_age_days": 365,
-        "recent_transactions": 0,
+        "recent_transaction_count": 0,
     }
 
 
@@ -77,22 +77,22 @@ class TestLocationRule:
 
 class TestTimeRule:
     def test_flags_early_morning(self, clean_transaction, clean_profile):
-        clean_transaction["timestamp"] = "2026-04-12 03:14:00"
+        clean_transaction["hour"] = 3
         flags = check_rules(clean_transaction, clean_profile)
         assert any("unusual hour" in f for f in flags)
 
     def test_no_flag_daytime(self, clean_transaction, clean_profile):
-        clean_transaction["timestamp"] = "2026-04-12 10:00:00"
+        clean_transaction["hour"] = 10
         flags = check_rules(clean_transaction, clean_profile)
         assert not any("unusual hour" in f for f in flags)
 
     def test_boundary_midnight_flagged(self, clean_transaction, clean_profile):
-        clean_transaction["timestamp"] = "2026-04-12 00:00:00"
+        clean_transaction["hour"] = 0
         flags = check_rules(clean_transaction, clean_profile)
         assert any("unusual hour" in f for f in flags)
 
     def test_boundary_5am_not_flagged(self, clean_transaction, clean_profile):
-        clean_transaction["timestamp"] = "2026-04-12 05:00:00"
+        clean_transaction["hour"] = 5
         flags = check_rules(clean_transaction, clean_profile)
         assert not any("unusual hour" in f for f in flags)
 
@@ -123,12 +123,12 @@ class TestHighRiskMerchantRule:
 
 class TestVelocityRule:
     def test_flags_at_3_or_more(self, clean_transaction, clean_profile):
-        clean_profile["recent_transactions"] = 3
+        clean_profile["recent_transaction_count"] = 3
         flags = check_rules(clean_transaction, clean_profile)
         assert any("Velocity" in f for f in flags)
 
     def test_no_flag_below_3(self, clean_transaction, clean_profile):
-        clean_profile["recent_transactions"] = 2
+        clean_profile["recent_transaction_count"] = 2
         flags = check_rules(clean_transaction, clean_profile)
         assert not any("Velocity" in f for f in flags)
 
@@ -296,7 +296,7 @@ class TestDetectorAgentGoldenDataset:
             "avg_spend": 200,
             "usual_location": "Singapore",
             "account_age_days": 320,
-            "recent_transactions": 5,
+            "recent_transaction_count": 5,
         }
         result = self.agent.analyze(txn, profile)
         assert result["verdict"] == "REJECTED"

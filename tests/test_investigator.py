@@ -26,6 +26,7 @@ def normal_profile():
         "known_countries":  ["India"],
         "known_merchants":  ["Swiggy", "Amazon"],
         "typical_hours":    [9, 10, 11, 14],
+        "transaction_count": 10,
     }
 
 
@@ -209,11 +210,12 @@ class TestInvestigatorGoldenDataset:
             "merchant": "Crypto Exchange XY",
         }
         profile = {
-            "avg_spend":       85,
-            "avg_amount":      85,
-            "known_countries": ["India"],
-            "known_merchants": ["Swiggy", "Amazon"],
-            "typical_hours":   [9, 10, 11],
+            "avg_spend":        85,
+            "avg_amount":       85,
+            "known_countries":  ["India"],
+            "known_merchants":  ["Swiggy", "Amazon"],
+            "typical_hours":    [9, 10, 11],
+            "transaction_count": 10,
         }
         result = investigate(txn, profile)
         assert result["deviation_score"] >= 70
@@ -228,11 +230,12 @@ class TestInvestigatorGoldenDataset:
             "merchant": "Swiggy",
         }
         profile = {
-            "avg_spend":       50,
-            "avg_amount":      50,
-            "known_countries": ["India"],
-            "known_merchants": ["Swiggy"],
-            "typical_hours":   [12, 13, 14],
+            "avg_spend":        50,
+            "avg_amount":       50,
+            "known_countries":  ["India"],
+            "known_merchants":  ["Swiggy"],
+            "typical_hours":    [12, 13, 14],
+            "transaction_count": 10,
         }
         result = investigate(txn, profile)
         assert result["deviation_score"] == 0
@@ -247,11 +250,12 @@ class TestInvestigatorGoldenDataset:
             "merchant": "Lazada",
         }
         profile = {
-            "avg_spend":       200,
-            "avg_amount":      200,
-            "known_countries": ["Singapore"],
-            "known_merchants": ["Lazada"],
-            "typical_hours":   [9, 10, 11],
+            "avg_spend":        200,
+            "avg_amount":       200,
+            "known_countries":  ["Singapore"],
+            "known_merchants":  ["Lazada"],
+            "typical_hours":    [9, 10, 11],
+            "transaction_count": 10,
         }
         result = investigate(txn, profile)
         assert result["signals"]["country"] == 25

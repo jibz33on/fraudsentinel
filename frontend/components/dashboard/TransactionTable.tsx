@@ -1,3 +1,4 @@
+import React from "react"
 import Link from "next/link"
 import { RiskScore } from "@/components/shared/RiskScore"
 import { StatusBadge } from "@/components/shared/StatusBadge"
@@ -50,8 +51,15 @@ function getAnomalyTags(tx: TransactionDetail): string[] {
   return tags.slice(0, 2)
 }
 
+const DAY_MS = 24 * 60 * 60 * 1000
+
+function isOlderThan24h(iso: string): boolean {
+  const utc = iso.endsWith("Z") ? iso : iso + "Z"
+  return Date.now() - new Date(utc).getTime() > DAY_MS
+}
+
 export function TransactionTable({ transactions }: { transactions: TransactionDetail[] }) {
-  const sorted = transactions
+  let dividerInserted = false
 
   return (
     <div
@@ -74,18 +82,33 @@ export function TransactionTable({ transactions }: { transactions: TransactionDe
           </tr>
         </thead>
         <tbody>
-          {sorted.map((tx) => {
+          {transactions.map((tx) => {
+            const time = tx.transaction.timestamp ?? tx.transaction.created_at ?? ""
+            const needsDivider = !dividerInserted && isOlderThan24h(time)
+            if (needsDivider) dividerInserted = true
             const name = tx.transaction.user_name
             const riskScore = tx.decision?.detector?.risk_score ?? 0
             const verdict = (tx.decision?.decision?.verdict ?? tx.transaction.status) as "APPROVED" | "REVIEW" | "REJECTED"
-            const time = tx.transaction.timestamp ?? tx.transaction.created_at ?? ""
             const isReview = verdict === "REVIEW"
             const isRejected = verdict === "REJECTED"
             const anomalyTags = getAnomalyTags(tx)
 
             return (
+              <React.Fragment key={tx.transaction.id}>
+                {needsDivider && (
+                  <tr>
+                    <td colSpan={6} className="px-5 py-2">
+                      <div className="flex items-center gap-3">
+                        <div className="flex-1 h-px" style={{ background: "var(--border)" }} />
+                        <span className="text-[10px] font-mono uppercase tracking-widest text-[var(--text-secondary)]">
+                          Earlier
+                        </span>
+                        <div className="flex-1 h-px" style={{ background: "var(--border)" }} />
+                      </div>
+                    </td>
+                  </tr>
+                )}
               <tr
-                key={tx.transaction.id}
                 className="border-b border-[var(--border)] hover:bg-white/[0.03] transition-colors"
                 style={
                   isRejected
@@ -149,6 +172,7 @@ export function TransactionTable({ transactions }: { transactions: TransactionDe
                   </Link>
                 </td>
               </tr>
+              </React.Fragment>
             )
           })}
         </tbody>

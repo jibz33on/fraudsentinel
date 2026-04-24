@@ -59,6 +59,9 @@ export interface AgentActivityItem {
   confidence: number | null
   merchant: string
   user_name: string
+  score?: number
+  deviation?: number
+  detail?: string
 }
 
 export interface AnalyticsData {

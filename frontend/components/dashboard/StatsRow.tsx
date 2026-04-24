@@ -68,7 +68,7 @@ export function StatsRow({ stats }: { stats: DashboardStats }) {
         total={stats.total}
       />
       <StatCard
-        label="Flagged"
+        label="Under Review"
         value={stats.flagged}
         subtitle="Pending review"
         color="var(--accent-amber)"

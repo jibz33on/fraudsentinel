@@ -7,7 +7,13 @@ function timeAgo(iso: string): string {
   if (seconds < 60) return `${seconds}s ago`
   const minutes = Math.floor(seconds / 60)
   if (minutes < 60) return `${minutes}m ago`
-  return `${Math.floor(minutes / 60)}h ago`
+  const hours = Math.floor(minutes / 60)
+  if (hours < 24) return `${hours}h ago`
+  const days = Math.floor(hours / 24)
+  if (days < 7) return `${days}d ago`
+  const weeks = Math.floor(days / 7)
+  if (weeks < 5) return `${weeks}w ago`
+  return `${Math.floor(weeks / 4)}mo ago`
 }
 
 function verdictColor(verdict: string): string {
@@ -51,20 +57,37 @@ export function AgentActivity({ activities }: { activities: AgentActivityItem[] 
                 {item.merchant}
               </p>
 
-              {/* Verdict + confidence */}
-              <div className="flex items-center gap-2">
+              {/* Verdict + agent-specific metric */}
+              <div className="flex items-center gap-2 flex-wrap">
                 <span
                   className="text-xs font-mono font-semibold"
                   style={{ color: verdictColor(item.verdict) }}
                 >
                   {item.verdict}
                 </span>
-                {item.confidence != null && (
+                {item.agent === "DETECTOR" && item.score != null && (
+                  <span className="text-[10px] font-mono text-[var(--text-secondary)]">
+                    score: {item.score}
+                  </span>
+                )}
+                {item.agent === "INVESTIGATOR" && item.deviation != null && (
+                  <span className="text-[10px] font-mono text-[var(--text-secondary)]">
+                    deviation: {item.deviation}
+                  </span>
+                )}
+                {item.agent === "DECISION" && item.confidence != null && (
                   <span className="text-[10px] font-mono text-[var(--text-secondary)]">
                     {item.confidence}% confidence
                   </span>
                 )}
               </div>
+
+              {/* Detail line */}
+              {item.detail && (
+                <p className="text-[10px] text-[var(--text-secondary)] mt-0.5 truncate">
+                  {item.detail}
+                </p>
+              )}
 
             </div>
             {i < activities.length - 1 && (

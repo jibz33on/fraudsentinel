@@ -232,25 +232,73 @@ def get_activity():
             .select("*, transactions!inner(*, users!inner(*))") \
             .eq("status", "complete") \
             .order("created_at", desc=True) \
-            .limit(10) \
+            .limit(7) \
             .execute()
+
+        def detector_verdict(score: int) -> str:
+            if score >= 70: return "REJECTED"
+            if score >= 30: return "REVIEW"
+            return "APPROVED"
+
+        def investigator_verdict(deviation: int) -> str:
+            if deviation >= 50: return "REJECTED"
+            if deviation >= 10: return "REVIEW"
+            return "APPROVED"
 
         results = []
         for row in response.data:
-            verdict = row.get("decision_verdict") or "UNKNOWN"
-            if verdict in ("UNKNOWN", None):
+            final_verdict = row.get("decision_verdict") or "UNKNOWN"
+            if not final_verdict or final_verdict == "UNKNOWN":
                 continue
-            txn  = row.get("transactions") or {}
-            user = txn.get("users") or {}
+
+            txn       = row.get("transactions") or {}
+            user      = txn.get("users") or {}
+            merchant  = txn.get("merchant") or "Unknown"
+            user_name = user.get("name") or "Unknown"
+            tid       = row["transaction_id"]
+            timestamp = row.get("created_at", "")
+
+            det_score  = row.get("detector_score") or 0
+            deviation  = row.get("investigator_deviation") or 0
+            flags      = row.get("detector_flags") or []
+            summary    = row.get("investigator_summary") or ""
+
+            flag_label = (
+                f"{len(flags)} flag{'s' if len(flags) != 1 else ''}"
+                if flags else "No flags"
+            )
+            summary_short = (summary[:60] + "…") if len(summary) > 60 else summary
 
             results.append({
-                "id":         row["transaction_id"],
-                "agent":      "DECISION",
-                "timestamp":  row.get("created_at", ""),
-                "verdict":    verdict,
+                "id":        f"{tid}:detector",
+                "agent":     "DETECTOR",
+                "timestamp": timestamp,
+                "verdict":   detector_verdict(det_score),
+                "confidence": None,
+                "score":     det_score,
+                "detail":    flag_label,
+                "merchant":  merchant,
+                "user_name": user_name,
+            })
+            results.append({
+                "id":        f"{tid}:investigator",
+                "agent":     "INVESTIGATOR",
+                "timestamp": timestamp,
+                "verdict":   investigator_verdict(deviation),
+                "confidence": None,
+                "deviation": deviation,
+                "detail":    summary_short or "No behavioural deviation",
+                "merchant":  merchant,
+                "user_name": user_name,
+            })
+            results.append({
+                "id":        f"{tid}:decision",
+                "agent":     "DECISION",
+                "timestamp": timestamp,
+                "verdict":   final_verdict,
                 "confidence": row.get("decision_confidence"),
-                "merchant":   txn.get("merchant") or "Unknown",
-                "user_name":  user.get("name") or "Unknown",
+                "merchant":  merchant,
+                "user_name": user_name,
             })
 
         return results

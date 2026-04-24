@@ -18,4 +18,5 @@ streamlit
 pydantic
 python-dotenv
 faker
-pandaspytest
+pandas
+pytest
